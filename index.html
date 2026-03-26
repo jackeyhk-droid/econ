@@ -1,0 +1,1858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Economic Indicators Dashboard | 經濟指標儀表板</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0c10;
+  --bg-secondary: #12151c;
+  --bg-card: #181c26;
+  --bg-card-hover: #1e2330;
+  --bg-modal: #141821;
+  --border: #2a2f3e;
+  --border-hover: #3d4460;
+  --text-primary: #e8eaf0;
+  --text-secondary: #8b90a0;
+  --text-muted: #5c6175;
+  --accent-leading: #00d4aa;
+  --accent-leading-dim: rgba(0,212,170,0.12);
+  --accent-lagging: #ff6b6b;
+  --accent-lagging-dim: rgba(255,107,107,0.12);
+  --accent-coincident: #4ea8ff;
+  --accent-coincident-dim: rgba(78,168,255,0.12);
+  --accent-gold: #f0c040;
+  --accent-gold-dim: rgba(240,192,64,0.12);
+  --radius: 10px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', 'Noto Sans TC', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Header */
+.ei-header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,12,16,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex; justify-content: center; align-items: center;
+}
+
+.ei-header-center { display: flex; align-items: center; flex-direction: column; gap: 6px; }
+
+.ei-header-title-row { display: flex; align-items: center; gap: 12px; }
+
+.ei-logo {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+  padding: 4px 10px; border-radius: 4px;
+}
+
+.ei-header-title {
+  font-size: 24px; font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.ei-header-subtitle {
+  font-size: 12px; color: var(--text-muted);
+  letter-spacing: 1px; text-align: center;
+}
+
+.ei-header-controls {
+  position: absolute; right: 32px; top: 50%;
+  transform: translateY(-50%);
+  display: flex; align-items: center; gap: 12px;
+}
+
+.ei-lang-toggle {
+  display: flex; background: var(--bg-secondary);
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+}
+
+.ei-lang-btn {
+  padding: 6px 16px; font-size: 13px; font-weight: 500;
+  border: none; cursor: pointer;
+  background: transparent; color: var(--text-secondary);
+  font-family: inherit; transition: all 0.2s;
+}
+
+.ei-lang-btn.ei-active {
+  background: var(--accent-gold);
+  color: #0a0c10; font-weight: 700;
+}
+
+.ei-filter-bar-wrap {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.ei-filter-bar {
+  display: flex; gap: 8px; padding: 12px 32px;
+  flex-wrap: wrap;
+  max-width: 1440px; margin: 0 auto;
+}
+
+.ei-filter-btn {
+  padding: 6px 16px; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border); border-radius: 20px;
+  background: transparent; color: var(--text-secondary);
+  cursor: pointer; font-family: inherit; transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.ei-filter-btn:hover { border-color: var(--border-hover); color: var(--text-primary); }
+.ei-filter-btn.ei-active-all { border-color: var(--accent-gold); color: var(--accent-gold); background: var(--accent-gold-dim); }
+.ei-filter-btn.ei-active-leading { border-color: var(--accent-leading); color: var(--accent-leading); background: var(--accent-leading-dim); }
+.ei-filter-btn.ei-active-lagging { border-color: var(--accent-lagging); color: var(--accent-lagging); background: var(--accent-lagging-dim); }
+.ei-filter-btn.ei-active-coincident { border-color: var(--accent-coincident); color: var(--accent-coincident); background: var(--accent-coincident-dim); }
+
+.ei-search-wrap {
+  margin-left: auto;
+  position: relative;
+  display: flex; align-items: center;
+}
+
+.ei-search-box {
+  padding: 6px 32px 6px 14px; font-size: 13px;
+  border: 1px solid var(--border); border-radius: 20px;
+  background: var(--bg-primary); color: var(--text-primary);
+  font-family: inherit; width: 220px; outline: none;
+  transition: border-color 0.2s;
+}
+.ei-search-box.ei-has-tag {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+.ei-search-box:focus { border-color: var(--accent-gold); }
+.ei-search-box::placeholder { color: var(--text-muted); }
+
+.ei-search-clear {
+  position: absolute; right: 8px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--border);
+  border: none;
+  color: var(--text-primary);
+  font-size: 12px; line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.ei-search-clear.ei-visible { display: flex; }
+.ei-search-clear:hover { background: var(--accent-lagging); }
+
+/* Legend */
+.ei-legend-wrap {
+  border-bottom: 1px solid var(--border);
+}
+
+.ei-legend {
+  display: flex; gap: 24px; padding: 16px 32px;
+  align-items: center; flex-wrap: wrap;
+  max-width: 1440px; margin: 0 auto;
+}
+
+.ei-legend-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--text-secondary);
+}
+
+.ei-legend-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+
+.ei-legend-dot.ei-leading { background: var(--accent-leading); }
+.ei-legend-dot.ei-lagging { background: var(--accent-lagging); }
+.ei-legend-dot.ei-coincident { background: var(--accent-coincident); }
+
+/* Main Grid */
+.ei-main { padding: 0 32px 64px; max-width: 1440px; margin: 0 auto; }
+
+.ei-section-title {
+  font-size: 14px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  margin: 32px 0 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+
+.ei-section-title .ei-line {
+  flex: 1; height: 1px; background: var(--border);
+}
+
+.ei-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+/* Card */
+.ei-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.ei-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0;
+  width: 4px; height: 100%;
+  border-radius: 4px 0 0 4px;
+}
+
+.ei-card.ei-leading::before { background: var(--accent-leading); }
+.ei-card.ei-lagging::before { background: var(--accent-lagging); }
+.ei-card.ei-coincident::before { background: var(--accent-coincident); }
+
+.ei-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.ei-card-header {
+  display: flex; justify-content: space-between;
+  align-items: flex-start; margin-bottom: 8px;
+}
+
+.ei-card-name {
+  font-size: 15px; font-weight: 700;
+  line-height: 1.3;
+}
+
+.ei-card-abbr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  padding: 2px 8px; border-radius: 4px;
+  white-space: nowrap;
+}
+
+.ei-card.ei-leading .ei-card-abbr { color: var(--accent-leading); background: var(--accent-leading-dim); }
+.ei-card.ei-lagging .ei-card-abbr { color: var(--accent-lagging); background: var(--accent-lagging-dim); }
+.ei-card.ei-coincident .ei-card-abbr { color: var(--accent-coincident); background: var(--accent-coincident-dim); }
+
+.ei-card-type {
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.ei-card.ei-leading .ei-card-type { color: var(--accent-leading); }
+.ei-card.ei-lagging .ei-card-type { color: var(--accent-lagging); }
+.ei-card.ei-coincident .ei-card-type { color: var(--accent-coincident); }
+
+.ei-card-desc {
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.ei-card-footer {
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+
+.ei-card-freq {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.ei-card-click-hint {
+  font-size: 11px; color: var(--text-muted);
+  opacity: 0; transition: opacity 0.2s;
+}
+.ei-card:hover .ei-card-click-hint { opacity: 1; }
+
+/* Modal Overlay */
+.ei-modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  justify-content: center; align-items: flex-start;
+  padding: 40px 20px;
+  overflow-y: auto;
+}
+
+.ei-modal-overlay.ei-active { display: flex; }
+
+.ei-modal {
+  background: var(--bg-modal);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  max-width: 780px; width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  animation: modalIn 0.3s ease;
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ei-modal-header {
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ei-modal-title-group { padding-right: 48px; }
+.ei-modal-name { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.ei-modal-name-sub { font-size: 15px; color: var(--text-secondary); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.ei-modal-badge {
+  font-size: 12px; font-weight: 600;
+  padding: 3px 12px; border-radius: 20px;
+  letter-spacing: 0.5px;
+  display: inline-flex; align-items: center;
+}
+
+.ei-modal-badge.ei-leading { color: var(--accent-leading); background: var(--accent-leading-dim); border: 1px solid rgba(0,212,170,0.3); }
+.ei-modal-badge.ei-lagging { color: var(--accent-lagging); background: var(--accent-lagging-dim); border: 1px solid rgba(255,107,107,0.3); }
+.ei-modal-badge.ei-coincident { color: var(--accent-coincident); background: var(--accent-coincident-dim); border: 1px solid rgba(78,168,255,0.3); }
+
+.ei-modal-close {
+  position: absolute; top: 16px; right: 20px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  color: var(--text-secondary); font-size: 18px;
+  width: 32px; height: 32px; border-radius: 8px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.ei-modal-close:hover { color: var(--text-primary); border-color: var(--border-hover); }
+
+.ei-modal-body { padding: 24px 28px 28px; }
+
+.ei-modal-section {
+  margin-bottom: 24px;
+}
+
+.ei-modal-section:last-child { margin-bottom: 0; }
+
+.ei-modal-section-title {
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--accent-gold);
+  margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.ei-modal-section-title .ei-icon { font-size: 14px; }
+
+.ei-modal-text {
+  font-size: 15px; color: var(--text-primary);
+  line-height: 1.8;
+}
+
+.ei-modal-formula {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  color: var(--accent-gold);
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+.ei-modal-source {
+  font-size: 14px; color: var(--text-primary);
+}
+
+.ei-modal-source a {
+  color: var(--accent-gold);
+  text-decoration: none;
+}
+
+.ei-regime-note {
+  font-size: 13px; line-height: 1.6;
+  color: var(--accent-gold);
+  background: var(--accent-gold-dim);
+  border: 1px solid rgba(240,192,64,0.25);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+}
+
+.ei-impact-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.ei-impact-box {
+  padding: 16px 18px;
+  border-radius: 8px;
+  font-size: 14px; line-height: 1.7;
+}
+
+.ei-impact-box.ei-bullish {
+  background: rgba(0,212,170,0.08);
+  border: 1px solid rgba(0,212,170,0.2);
+}
+
+.ei-impact-box.ei-bearish {
+  background: rgba(255,107,107,0.08);
+  border: 1px solid rgba(255,107,107,0.2);
+}
+
+.ei-impact-label {
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.ei-impact-box.ei-bullish .ei-impact-label { color: var(--accent-leading); }
+.ei-impact-box.ei-bearish .ei-impact-label { color: var(--accent-lagging); }
+
+.ei-impact-text { color: var(--text-primary); }
+
+.ei-modal-tags {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px;
+}
+
+.ei-modal-tag {
+  font-size: 12px; padding: 4px 12px;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ei-modal-tag:hover {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  background: var(--accent-gold-dim);
+}
+
+/* Footer */
+.ei-footer {
+  text-align: center; padding: 24px;
+  font-size: 12px; color: var(--text-muted);
+  border-top: 1px solid var(--border);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ei-header { padding: 12px 16px; flex-direction: column; gap: 8px; }
+  .ei-header-controls { position: static; transform: none; }
+  .ei-header-title { font-size: 18px; }
+  .ei-filter-bar { padding: 10px 16px; }
+  .ei-main { padding: 0 16px 48px; }
+  .ei-grid { grid-template-columns: 1fr; }
+  .ei-impact-grid { grid-template-columns: 1fr; }
+  .ei-modal { margin: 20px; }
+  .ei-search-wrap { width: 100%; margin-left: 0; margin-top: 8px; }
+  .ei-search-box { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="ei-header">
+  <div class="ei-header-center">
+    <div class="ei-header-title-row">
+      <div class="ei-logo">ECON</div>
+      <div class="ei-header-title" id="headerTitle">Economic Indicators Dashboard</div>
+    </div>
+    <div class="ei-header-subtitle" id="headerSubtitle">CLICK ANY INDICATOR FOR FULL DETAILS</div>
+  </div>
+  <div class="ei-header-controls">
+    <div class="ei-lang-toggle">
+      <button class="ei-lang-btn ei-active" onclick="setEconLang('en', this)">EN</button>
+      <button class="ei-lang-btn" onclick="setEconLang('zh', this)">繁中</button>
+    </div>
+  </div>
+</div>
+
+<div class="ei-filter-bar-wrap">
+  <div class="ei-filter-bar" id="filterBar"></div>
+</div>
+
+<div class="ei-legend-wrap">
+  <div class="ei-legend">
+    <div class="ei-legend-item"><div class="ei-legend-dot ei-leading"></div><span id="legLeading">Leading</span></div>
+    <div class="ei-legend-item"><div class="ei-legend-dot ei-coincident"></div><span id="legCoincident">Coincident</span></div>
+    <div class="ei-legend-item"><div class="ei-legend-dot ei-lagging"></div><span id="legLagging">Lagging</span></div>
+  </div>
+</div>
+
+<div class="ei-main" id="mainContent"></div>
+
+<div class="ei-modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeEconModal()">
+  <div class="ei-modal" id="modalContent"></div>
+</div>
+
+<div class="ei-footer" id="footer">Data references: Bureau of Economic Analysis (BEA), Bureau of Labor Statistics (BLS), Federal Reserve, ISM, Conference Board, Census Bureau</div>
+
+<script>
+let currentLang = 'en';
+let currentFilter = 'all';
+let searchTerm = '';
+
+const indicators = [
+  // ===== LEADING =====
+  {
+    id: 'ism_mfg',
+    type: 'leading',
+    en: {
+      name: 'ISM Manufacturing PMI',
+      abbr: 'ISM PMI',
+      category: 'Business Activity',
+      shortDesc: 'Monthly survey of 300+ manufacturing firms measuring expansion or contraction in the sector.',
+      definition: 'The Institute for Supply Management (ISM) Manufacturing Purchasing Managers\' Index is a diffusion index derived from monthly surveys of over 300 manufacturing companies. It measures five components: new orders, production, employment, supplier deliveries, and inventories. A reading above 50 indicates expansion; below 50 indicates contraction.',
+      formula: 'PMI = (New Orders × 0.30) + (Production × 0.25) + (Employment × 0.20) + (Supplier Deliveries × 0.15) + (Inventories × 0.10)',
+      theory: 'As a forward-looking survey-based indicator, PMI captures business sentiment and ordering intentions before they materialize in hard economic data. Manufacturers adjust orders and production plans based on expected demand, making this a reliable leading indicator of GDP and industrial output.',
+      source: 'Institute for Supply Management (ISM) — released first business day of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Bullish for equities — signals accelerating economic growth, higher corporate earnings potential. Cyclical sectors (industrials, materials) tend to outperform. Bond yields may rise on growth expectations.',
+      belowEst: 'Bearish short-term — suggests slowing activity, potential earnings revisions lower. Defensive sectors (utilities, healthcare) may outperform. Can trigger flight to bonds if sustained below 50.',
+      tags: ['Manufacturing', 'Sentiment', 'Diffusion Index']
+    },
+    zh: {
+      name: 'ISM 製造業採購經理人指數',
+      abbr: 'ISM PMI',
+      category: '商業活動',
+      shortDesc: '每月調查300+製造業公司，衡量製造業擴張或收縮程度。',
+      definition: '供應管理協會（ISM）製造業採購經理人指數是一項擴散指數，源自每月對超過300家製造業公司的調查。衡量五個組成部分：新訂單、生產、就業、供應商交付和庫存。讀數高於50表示擴張，低於50表示收縮。',
+      formula: 'PMI = (新訂單 × 0.30) + (生產 × 0.25) + (就業 × 0.20) + (供應商交付 × 0.15) + (庫存 × 0.10)',
+      theory: '作為前瞻性的調查指標，PMI在硬經濟數據出現之前就捕捉到商業情緒和訂單意向。製造商根據預期需求調整訂單和生產計劃，使其成為GDP和工業產出的可靠領先指標。',
+      source: '供應管理協會（ISM）— 每月第一個工作日發佈',
+      frequency: '每月',
+      aboveEst: '對股市利多 — 信號經濟增長加速，企業盈利潛力更高。週期性板塊（工業、材料）傾向跑贏大盤。債券收益率可能因增長預期而上升。',
+      belowEst: '短期利空 — 暗示經濟活動放緩，盈利可能下修。防禦性板塊（公用事業、醫療）可能跑贏。若持續低於50可能引發資金流向債券。',
+      tags: ['製造業', '情緒指標', '擴散指數']
+    }
+  },
+  {
+    id: 'ism_svc',
+    type: 'leading',
+    en: {
+      name: 'ISM Services PMI',
+      abbr: 'ISM SVC',
+      category: 'Business Activity',
+      shortDesc: 'Monthly survey of services sector firms — covers ~70% of U.S. GDP.',
+      definition: 'The ISM Services PMI surveys non-manufacturing industries covering business activity, new orders, employment, and supplier deliveries. Since services represent roughly 70% of U.S. GDP, this index provides a crucial snapshot of the broader economy beyond manufacturing.',
+      formula: 'Services PMI = (Business Activity × 0.25) + (New Orders × 0.25) + (Employment × 0.25) + (Supplier Deliveries × 0.25)',
+      theory: 'The services sector drives the majority of the U.S. economy. This PMI leads GDP by capturing real-time shifts in the largest economic segment. Services tend to be stickier than manufacturing, so a downturn here is particularly significant.',
+      source: 'Institute for Supply Management (ISM) — released third business day of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Bullish — confirms broad economic strength. Supports consumer discretionary and financials. May increase Fed hawkishness if combined with strong employment.',
+      belowEst: 'Bearish — implies consumer and business services weakness. Growth stocks may underperform. Can signal upcoming labor market softness.',
+      tags: ['Services', 'Sentiment', 'Diffusion Index']
+    },
+    zh: {
+      name: 'ISM 非製造業（服務業）PMI',
+      abbr: 'ISM SVC',
+      category: '商業活動',
+      shortDesc: '每月調查服務業公司 — 涵蓋美國GDP約70%。',
+      definition: 'ISM服務業PMI調查非製造業行業，涵蓋商業活動、新訂單、就業和供應商交付。由於服務業佔美國GDP約70%，此指數提供了製造業以外更廣泛經濟的關鍵快照。',
+      formula: '服務業PMI = (商業活動 × 0.25) + (新訂單 × 0.25) + (就業 × 0.25) + (供應商交付 × 0.25)',
+      theory: '服務業驅動美國經濟的大部分。此PMI通過捕捉最大經濟部門的實時變化來領先GDP。服務業比製造業更具粘性，因此此處的下滑特別重要。',
+      source: '供應管理協會（ISM）— 每月第三個工作日發佈',
+      frequency: '每月',
+      aboveEst: '利多 — 確認廣泛經濟實力。支持消費可選和金融板塊。若與強勁就業結合，可能增加聯儲局鷹派立場。',
+      belowEst: '利空 — 暗示消費和商業服務疲軟。成長股可能表現不佳。可能預示即將到來的勞動市場疲軟。',
+      tags: ['服務業', '情緒指標', '擴散指數']
+    }
+  },
+  {
+    id: 'consumer_confidence',
+    type: 'leading',
+    en: {
+      name: 'Consumer Confidence Index',
+      abbr: 'CCI',
+      category: 'Consumer Sentiment',
+      shortDesc: 'Survey of 5,000 households measuring consumer optimism about economic conditions.',
+      definition: 'The Conference Board\'s Consumer Confidence Index measures consumer attitudes toward current business and employment conditions (Present Situation Index) and expectations for conditions six months ahead (Expectations Index). Based on a survey of 5,000 U.S. households with a base year of 1985 = 100.',
+      formula: 'CCI = (Present Situation Index + Expectations Index) / 2\nEach sub-index: (Positive Responses / (Positive + Negative)) × 100',
+      theory: 'Consumer spending drives ~70% of GDP. When consumers are confident, they spend more freely, supporting corporate revenues and economic growth. The Expectations component is particularly useful as a leading indicator, as it captures shifts in spending intentions before actual purchases. Soft vs. Hard Data divergence: in recent years, a persistent pattern has emerged where consumers report extreme pessimism in surveys (soft data) while simultaneously spending aggressively (hard data like retail sales and credit card spending). When soft and hard data diverge, short-term market moves tend to follow hard data (since it feeds directly into GDP), but soft data often serves as an early warning of a medium-term trend reversal — consumers eventually act on their stated pessimism.',
+
+      source: 'The Conference Board — released last Tuesday of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Bullish for consumer discretionary and retail stocks. Signals willingness to spend, supporting revenue growth. Housing and auto sectors benefit particularly.',
+      belowEst: 'Bearish for consumer-facing sectors. May precede reduced retail sales and housing demand. Defensive positioning and consumer staples tend to outperform.',
+      tags: ['Consumer', 'Sentiment', 'Survey']
+    },
+    zh: {
+      name: '消費者信心指數',
+      abbr: 'CCI',
+      category: '消費者情緒',
+      shortDesc: '調查5,000戶家庭，衡量消費者對經濟狀況的樂觀程度。',
+      definition: '世界大型企業聯合會（Conference Board）消費者信心指數衡量消費者對當前商業和就業狀況（現況指數）以及未來六個月預期（預期指數）的態度。基於5,000個美國家庭的調查，以1985年為基準年 = 100。',
+      formula: 'CCI = (現況指數 + 預期指數) / 2\n各子指數：(正面回應 / (正面 + 負面)) × 100',
+      theory: '消費者支出驅動GDP約70%。當消費者有信心時，他們會更自由地消費，支持企業收入和經濟增長。預期部分作為領先指標特別有用，因為它在實際購買之前就捕捉到消費意向的變化。 軟數據與硬數據背離：近年來出現持續的現象 — 消費者在調查中表達極度悲觀（軟數據低迷），但同時仍瘋狂消費（零售銷售和信用卡支出等硬數據強勁）。當軟硬數據背離時，短期市場走勢跟著硬數據走（因為直接計入GDP），但軟數據往往是中長期趨勢反轉的早期預警 — 消費者最終會按照他們表述的悲觀情緒行動。',
+      source: '世界大型企業聯合會 — 每月最後一個週二發佈',
+      frequency: '每月',
+      aboveEst: '對消費可選和零售股利多。信號消費意願增強，支持收入增長。房地產和汽車板塊尤其受益。',
+      belowEst: '對消費相關板塊利空。可能先於零售銷售和住房需求下降。防禦性配置和消費必需品傾向跑贏。',
+      tags: ['消費者', '情緒指標', '調查']
+    }
+  },
+  {
+    id: 'umich',
+    type: 'leading',
+    en: {
+      name: 'U. of Michigan Consumer Sentiment',
+      abbr: 'UMich',
+      category: 'Consumer Sentiment',
+      shortDesc: 'Telephone survey tracking consumer expectations on personal finances and business conditions.',
+      definition: 'The University of Michigan Consumer Sentiment Index is a monthly survey of at least 500 U.S. households by telephone, measuring consumer attitudes on personal finances, business conditions, and buying conditions. It includes two sub-indices: Current Economic Conditions and Consumer Expectations. Also tracks critical 1-year and 5-year inflation expectations.',
+      formula: 'ICS = (Index of Current Conditions + Index of Consumer Expectations)\nRelative scores computed as: ((% Favorable - % Unfavorable) + 100) / 2',
+      theory: 'Consumer expectations drive forward-looking behavior. Uniquely, UMich also captures inflation expectations, which influence actual inflation through wage demands and pricing behavior. The Fed closely monitors UMich inflation expectations to gauge whether expectations are "anchored." Soft vs. Hard Data divergence: in recent years, a persistent pattern has emerged where consumers report extreme pessimism in surveys (soft data) while simultaneously spending aggressively (hard data like retail sales and credit card spending). When soft and hard data diverge, short-term market moves tend to follow hard data (since it feeds directly into GDP), but soft data often serves as an early warning of a medium-term trend reversal — consumers eventually act on their stated pessimism.',
+      source: 'University of Michigan Survey Research Center — preliminary mid-month, final end-of-month',
+      frequency: 'Monthly (2 releases)',
+      aboveEst: 'Positive for equities if accompanied by stable inflation expectations. Shows consumer willingness to spend. Growth-oriented sectors benefit. Fed watches inflation expectation component closely.',
+      belowEst: 'Negative for consumer-facing stocks. Rising inflation expectations alongside falling sentiment is stagflationary — very bearish. Stable inflation expectations with low sentiment may increase rate cut probability.',
+      tags: ['Consumer', 'Inflation Expectations', 'Survey']
+    },
+    zh: {
+      name: '密西根大學消費者情緒指數',
+      abbr: 'UMich',
+      category: '消費者情緒',
+      shortDesc: '電話調查追蹤消費者對個人財務和商業狀況的預期。',
+      definition: '密西根大學消費者情緒指數是每月對至少500個美國家庭進行的電話調查，衡量消費者對個人財務、商業狀況和購買條件的態度。包含兩個子指數：當前經濟狀況和消費者預期。同時追蹤關鍵的1年和5年通膨預期。',
+      formula: 'ICS = (當前狀況指數 + 消費者預期指數)\n相對分數 = ((正面% - 負面%) + 100) / 2',
+      theory: '消費者預期驅動前瞻性行為。獨特的是，UMich還捕捉通膨預期，通過工資要求和定價行為影響實際通膨。聯儲局密切監控UMich通膨預期，以衡量預期是否"錨定"。 軟數據與硬數據背離：近年來出現持續的現象 — 消費者在調查中表達極度悲觀（軟數據低迷），但同時仍瘋狂消費（零售銷售和信用卡支出等硬數據強勁）。當軟硬數據背離時，短期市場走勢跟著硬數據走（因為直接計入GDP），但軟數據往往是中長期趨勢反轉的早期預警 — 消費者最終會按照他們表述的悲觀情緒行動。',
+      source: '密西根大學調查研究中心 — 月中初步值，月末終值',
+      frequency: '每月（2次發佈）',
+      aboveEst: '若伴隨穩定的通膨預期，對股市正面。顯示消費者消費意願。成長導向板塊受益。聯儲局密切關注通膨預期部分。',
+      belowEst: '對消費相關股票不利。通膨預期上升伴隨情緒下降為滯脹信號 — 非常利空。通膨預期穩定但情緒低迷可能增加降息機率。',
+      tags: ['消費者', '通膨預期', '調查']
+    }
+  },
+  {
+    id: 'building_permits',
+    type: 'leading',
+    en: {
+      name: 'Building Permits',
+      abbr: 'PERMITS',
+      category: 'Housing',
+      shortDesc: 'Number of new residential construction permits issued — a forward indicator for housing activity.',
+      definition: 'Building permits measure the number of permits issued for new privately-owned housing units. As permits must be obtained before construction begins, this metric is a reliable forward indicator of housing starts and broader construction activity. Reported as a seasonally adjusted annual rate (SAAR).',
+      formula: 'Reported as: Seasonally Adjusted Annual Rate (SAAR) of permits issued\nBreakdown by: single-family, multi-family (2-4 units), and 5+ unit structures',
+      theory: 'Housing is one of the most interest-rate-sensitive sectors. Rising permits signal developer confidence in future demand, while declining permits often precede economic slowdowns. Residential investment is a key leading component of GDP.',
+      source: 'U.S. Census Bureau & HUD — released around the 17th of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Bullish for homebuilders (e.g., LEN, DHI, PHM), building materials (e.g., VMC, MLM), and home improvement (e.g., HD, LOW). Signals economic confidence and labor demand.',
+      belowEst: 'Bearish for housing-related equities. May signal rate sensitivity or weakening demand. Often an early warning of economic deceleration. Mortgage REITs may also underperform.',
+      tags: ['Housing', 'Construction', 'Interest Rate Sensitive']
+    },
+    zh: {
+      name: '建築許可證',
+      abbr: 'PERMITS',
+      category: '住房',
+      shortDesc: '新私人住宅建設許可證發放數量 — 住房活動的前瞻指標。',
+      definition: '建築許可證衡量為新私有住宅單位發放的許可證數量。由於許可證必須在施工前取得，此指標是住房開工和更廣泛建設活動的可靠前瞻指標。以季節性調整年化率（SAAR）報告。',
+      formula: '報告方式：季節性調整年化率（SAAR）\n按類別分：獨棟住宅、多戶（2-4單位）和5+單位結構',
+      theory: '住房是最具利率敏感性的部門之一。許可證上升信號開發商對未來需求的信心，而下降通常先於經濟放緩。住宅投資是GDP的關鍵領先組成部分。',
+      source: '美國人口普查局與HUD — 每月約17日發佈',
+      frequency: '每月',
+      aboveEst: '對房屋建築商（如LEN、DHI、PHM）、建材（如VMC、MLM）和家居改善（如HD、LOW）利多。信號經濟信心和勞動需求。',
+      belowEst: '對住房相關股票利空。可能信號利率敏感性或需求疲軟。通常是經濟減速的早期預警。抵押貸款REITs也可能表現不佳。',
+      tags: ['住房', '建設', '利率敏感']
+    }
+  },
+  {
+    id: 'yield_curve',
+    type: 'leading',
+    en: {
+      name: 'Treasury Yield Curve (10Y-2Y Spread)',
+      abbr: '10Y-2Y',
+      category: 'Financial Markets',
+      shortDesc: 'Spread between 10-year and 2-year Treasury yields — classic recession predictor.',
+      definition: 'The yield curve spread measures the difference between long-term (10-year) and short-term (2-year) U.S. Treasury yields. A normal (positive) spread reflects expectations of economic growth and higher future rates. An inverted curve (negative spread) has preceded every U.S. recession since the 1960s.',
+      formula: 'Spread = 10-Year Treasury Yield - 2-Year Treasury Yield\nInversion: Spread < 0 bps\nSteepening: Spread increasing over time',
+      theory: 'The yield curve embeds market expectations for growth and monetary policy. Inversion suggests markets expect the Fed will need to cut rates due to a downturn. The curve also reflects the term premium — compensation for holding longer-duration bonds. A flattening or inverted curve signals that short-term risks (tight policy) exceed long-term growth expectations. Important note: while 10Y-2Y is the most widely cited spread, the NY Fed\'s official recession probability model uses the 10Y-3M spread, which is more sensitive to current Fed policy stance and has historically produced fewer false signals than 10Y-2Y.',
+      source: 'U.S. Department of the Treasury — daily yields published on treasury.gov',
+      frequency: 'Daily',
+      aboveEst: 'Steepening curve is bullish — suggests improving growth expectations. Financials (banks) benefit from wider net interest margins. Cyclicals tend to outperform.',
+      belowEst: 'Flattening or inversion is bearish — signals recession risk. Banks underperform (compressed margins). Defensive positioning favored. Historically, equity markets peak 6-18 months after initial inversion.',
+      tags: ['Fixed Income', 'Recession Predictor', 'Fed Policy']
+    },
+    zh: {
+      name: '國債收益率曲線（10年-2年利差）',
+      abbr: '10Y-2Y',
+      category: '金融市場',
+      shortDesc: '10年期與2年期國債收益率之差 — 經典衰退預測指標。',
+      definition: '收益率曲線利差衡量長期（10年期）和短期（2年期）美國國債收益率之間的差異。正常（正）利差反映對經濟增長和未來更高利率的預期。倒掛曲線（負利差）自1960年代以來已先於每次美國衰退。',
+      formula: '利差 = 10年期國債收益率 - 2年期國債收益率\n倒掛：利差 < 0個基點\n陡峭化：利差隨時間增加',
+      theory: '收益率曲線包含市場對增長和貨幣政策的預期。倒掛暗示市場預期聯儲局將因經濟下滑而需要降息。曲線還反映期限溢價 — 持有長期債券的補償。平坦化或倒掛信號短期風險（緊縮政策）超過長期增長預期。重要補充：雖然10Y-2Y是媒體最廣泛引用的利差，但紐約聯儲官方衰退機率模型使用的是10Y-3M利差，它對當前聯儲局政策立場更為敏感，歷史上的誤判率也低於10Y-2Y。',
+      source: '美國財政部 — 每日收益率發佈於treasury.gov',
+      frequency: '每日',
+      aboveEst: '曲線陡峭化利多 — 暗示增長預期改善。金融（銀行）受益於更寬的淨利差。週期性板塊傾向跑贏。',
+      belowEst: '平坦化或倒掛利空 — 信號衰退風險。銀行表現不佳（利差壓縮）。偏好防禦性配置。歷史上，股市在首次倒掛後6-18個月見頂。',
+      tags: ['固定收益', '衰退預測', '聯儲局政策']
+    }
+  },
+  {
+    id: 'sp500',
+    type: 'leading',
+    en: {
+      name: 'S&P 500 Index',
+      abbr: 'SPX',
+      category: 'Financial Markets',
+      shortDesc: 'Broad U.S. equity benchmark — itself a leading economic indicator via "wisdom of markets."',
+      definition: 'The S&P 500 is a market-capitalization-weighted index of 500 large U.S. companies, representing roughly 80% of total U.S. equity market cap. It is one of the Conference Board\'s ten Leading Economic Indicators. Stock prices reflect the collective expectations of millions of investors about future corporate earnings and economic conditions.',
+      formula: 'Index Level = Σ(Price_i × Shares_i) / Divisor\nWhere i = each constituent, Divisor adjusted for splits, spinoffs',
+      theory: 'Markets are forward-looking discounting mechanisms. Equity prices aggregate vast information about expected earnings, economic conditions, and policy. Sustained declines (>20%) often lead or coincide with recessions, while sustained rallies anticipate recovery — typically leading economic activity by 6-9 months.',
+      source: 'S&P Dow Jones Indices (S&P Global) — real-time during market hours',
+      frequency: 'Real-time',
+      aboveEst: 'Self-reinforcing: rising markets boost consumer wealth effect, increase business confidence, and ease financial conditions. Positive for overall risk sentiment.',
+      belowEst: 'Negative wealth effect reduces consumer spending. Tightens financial conditions. Can trigger margin calls and forced selling, creating negative feedback loops.',
+      tags: ['Equity', 'Market Index', 'Wealth Effect']
+    },
+    zh: {
+      name: '標準普爾500指數',
+      abbr: 'SPX',
+      category: '金融市場',
+      shortDesc: '美國廣泛股票基準 — 通過"市場智慧"本身就是領先經濟指標。',
+      definition: 'S&P 500是500家美國大型公司的市值加權指數，約佔美國股票市場總市值的80%。它是世界大型企業聯合會十大領先經濟指標之一。股價反映了數百萬投資者對未來企業盈利和經濟狀況的集體預期。',
+      formula: '指數水平 = Σ(價格_i × 股數_i) / 除數\n其中i = 各成分股，除數因拆股、分拆而調整',
+      theory: '市場是前瞻性的折現機制。股價匯集了關於預期盈利、經濟狀況和政策的大量信息。持續下跌（>20%）通常領先或伴隨衰退，而持續上漲預示復甦 — 通常領先經濟活動6-9個月。',
+      source: 'S&P道瓊斯指數（S&P Global）— 交易時段實時更新',
+      frequency: '實時',
+      aboveEst: '自我強化：市場上漲提升消費者財富效應，增加商業信心，並放鬆金融條件。對整體風險情緒正面。',
+      belowEst: '負面財富效應減少消費者支出。收緊金融條件。可能觸發追繳保證金和被迫拋售，形成負面反饋循環。',
+      tags: ['股票', '市場指數', '財富效應']
+    }
+  },
+  {
+    id: 'initial_claims',
+    type: 'leading',
+    en: {
+      name: 'Initial Jobless Claims',
+      abbr: 'CLAIMS',
+      category: 'Labor Market',
+      shortDesc: 'Weekly count of new unemployment insurance filings — the most timely labor market indicator.',
+      definition: 'Initial jobless claims measure the number of individuals filing for unemployment insurance for the first time each week. As the most frequently released labor market indicator (weekly), it provides the earliest signal of changing labor conditions. The 4-week moving average smooths weekly volatility.',
+      formula: 'Initial Claims = New UI filings in the survey week\n4-Week Moving Average = Sum of last 4 weeks / 4\nContinuing Claims = Total ongoing UI recipients',
+      theory: 'Rising claims indicate increasing layoffs and labor market deterioration. Because companies cut workers before reducing other costs, claims serve as an early warning of economic weakness. The weekly frequency makes it one of the most timely economic indicators available.',
+      source: 'U.S. Department of Labor — released every Thursday at 8:30 AM ET',
+      frequency: 'Weekly',
+      aboveEst: 'Bearish — signals rising layoffs and economic weakness. Risk-off sentiment. May increase rate cut expectations. Defensive sectors favored.',
+      belowEst: 'Bullish — tight labor market continues. Supports consumer spending thesis. May reduce rate cut expectations if too tight, which can be negative for rate-sensitive growth stocks.',
+      tags: ['Labor', 'High Frequency', 'Unemployment']
+    },
+    zh: {
+      name: '首次申請失業救濟人數',
+      abbr: 'CLAIMS',
+      category: '勞動市場',
+      shortDesc: '每週新申請失業保險人數 — 最及時的勞動市場指標。',
+      definition: '首次申請失業救濟人數衡量每週首次申請失業保險的個人數量。作為最頻繁發佈的勞動市場指標（每週），它提供了勞動條件變化的最早信號。4週移動平均線平滑每週波動。',
+      formula: '首次申請 = 調查週的新UI申請\n4週移動平均 = 最近4週總和 / 4\n持續申請 = 持續領取UI的總人數',
+      theory: '申請人數上升表示裁員增加和勞動市場惡化。因為公司在減少其他成本之前先裁員，申請人數作為經濟疲軟的早期預警。每週的頻率使其成為最及時的經濟指標之一。',
+      source: '美國勞工部 — 每週四東部時間上午8:30發佈',
+      frequency: '每週',
+      aboveEst: '利空 — 信號裁員增加和經濟疲軟。避險情緒。可能增加降息預期。偏好防禦性板塊。',
+      belowEst: '利多 — 緊俏勞動市場持續。支持消費者支出論點。若過於緊俏可能減少降息預期，對利率敏感成長股可能不利。',
+      tags: ['勞動', '高頻', '失業']
+    }
+  },
+  {
+    id: 'lei',
+    type: 'leading',
+    en: {
+      name: 'Conference Board Leading Economic Index',
+      abbr: 'LEI',
+      category: 'Composite',
+      shortDesc: 'Composite of 10 leading indicators designed to predict turning points in the business cycle.',
+      definition: 'The LEI is a composite index of 10 leading indicators: average weekly hours (manufacturing), initial claims, manufacturers\' new orders (consumer goods), ISM new orders, manufacturers\' new orders (non-defense capital goods ex-aircraft), building permits, S&P 500, Leading Credit Index, 10Y-FFR spread, and consumer expectations.',
+      formula: 'LEI = Weighted composite of 10 standardized component indicators\nEach component is standardized and combined using historically-derived weights',
+      theory: 'By combining multiple leading indicators with different lead times and covering different sectors, the LEI smooths individual indicator noise and provides a robust signal of upcoming economic turning points. Three consecutive monthly declines is a traditional recession warning.',
+      source: 'The Conference Board — released third or fourth week of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Broadly bullish — broad-based improvement across multiple forward-looking metrics. Supports risk-on positioning and cyclical allocation.',
+      belowEst: 'Bearish if sustained — three consecutive declines historically precede recessions. Triggers de-risking and defensive rotation. Watch the breadth of declining components.',
+      tags: ['Composite', 'Business Cycle', 'Recession Warning']
+    },
+    zh: {
+      name: '世界大型企業聯合會領先經濟指數',
+      abbr: 'LEI',
+      category: '綜合指標',
+      shortDesc: '由10項領先指標組成的綜合指數，旨在預測商業週期的轉折點。',
+      definition: 'LEI是10項領先指標的綜合指數：平均每週工時（製造業）、首次申請失業救濟、製造商新訂單（消費品）、ISM新訂單、製造商新訂單（非國防資本品除飛機）、建築許可證、S&P 500、領先信貸指數、10年-FFR利差和消費者預期。',
+      formula: 'LEI = 10項標準化組成指標的加權綜合\n每個組成部分標準化後使用歷史權重組合',
+      theory: '通過結合具有不同領先時間和覆蓋不同部門的多個領先指標，LEI平滑了個別指標的噪聲，提供即將到來的經濟轉折點的穩健信號。連續三個月下降是傳統的衰退警告。',
+      source: '世界大型企業聯合會 — 每月第三或第四週發佈',
+      frequency: '每月',
+      aboveEst: '廣泛利多 — 多個前瞻性指標全面改善。支持風險偏好和週期性配置。',
+      belowEst: '若持續則利空 — 歷史上連續三次下降先於衰退。觸發減少風險和防禦性輪動。關注下降成分的廣度。',
+      tags: ['綜合', '商業週期', '衰退警告']
+    }
+  },
+  // ===== COINCIDENT =====
+  {
+    id: 'nfp',
+    type: 'coincident',
+    en: {
+      name: 'Nonfarm Payrolls (NFP)',
+      abbr: 'NFP',
+      category: 'Labor Market',
+      shortDesc: 'Monthly count of total U.S. jobs added/lost excluding farms — the most market-moving data release.',
+      definition: 'Nonfarm Payrolls measures the total number of paid U.S. workers excluding farm employees, government employees, private household employees, and nonprofit organization employees. Part of the Employment Situation Report, it also includes the unemployment rate, average hourly earnings, and labor force participation. It is arguably the single most market-moving economic release.',
+      formula: 'NFP Change = Current Month Total Nonfarm Employees - Prior Month Total\nSurvey: Establishment Survey (CES) of ~145,000 businesses and government agencies covering ~697,000 worksites',
+      theory: 'Employment is the backbone of consumer spending (70% of GDP). Payroll growth reflects real-time demand for labor, making it a coincident indicator of economic health. Critical caveat: in recent years, NFP initial prints have become significantly less reliable, frequently subject to large revisions over the subsequent two months (sometimes exceeding ±100K). Practitioners now focus equally on prior-month revisions and the gap between the Establishment Survey (CES, which produces NFP) and the Household Survey (CPS, which produces the unemployment rate) — persistent divergence between the two signals unreliable data. Annual benchmark revisions can retroactively change the labor market narrative.',
+      source: 'Bureau of Labor Statistics (BLS) — released first Friday of each month at 8:30 AM ET',
+      frequency: 'Monthly',
+      aboveEst: 'Macro regime matters: in a rate-hiking/inflation cycle, strong NFP → fewer rate cuts → bearish for rate-sensitive stocks ("good news is bad news"). In a growth-scare cycle, strong NFP is genuinely bullish. Always check: (1) prior-month revisions — a headline beat with large downward revisions is net-neutral or bearish; (2) Establishment vs. Household Survey divergence; (3) wage component for inflation signal.',
+      belowEst: 'Macro regime matters: in a tightening cycle, weak NFP → more rate cuts → positive for growth stocks ("bad news is good news"). In a deteriorating cycle where recession fears dominate, weak NFP confirms the downtrend → broadly bearish. Always check prior-month revisions — a headline miss with large upward revisions is net-neutral or bullish.',
+      tags: ['Labor', 'High Impact', 'Fed Watch']
+    },
+    zh: {
+      name: '非農就業人數 (NFP)',
+      abbr: 'NFP',
+      category: '勞動市場',
+      shortDesc: '每月美國新增/減少就業人數（不含農業）— 最具市場影響力的數據發佈。',
+      definition: '非農就業人數衡量美國不包括農場僱員、政府僱員、私人家庭僱員和非營利組織僱員的付薪工人總數。作為就業形勢報告的一部分，還包括失業率、平均時薪和勞動參與率。它可以說是最具市場影響力的經濟數據發佈。',
+      formula: 'NFP變化 = 當月非農僱員總數 - 上月總數\n調查：對約145,000家企業和政府機構（涵蓋約697,000個工作場所）的企業調查（CES）',
+      theory: '就業是消費者支出（GDP的70%）的基礎。就業增長反映了對勞動力的實時需求，使其成為經濟健康的同步指標。關鍵警告：近年來NFP初值的準確度大幅下降，經常在隨後兩個月出現大幅修正（有時超過±10萬）。實戰中，分析師現在同等重視前值修正幅度，以及機構調查（CES，產生NFP）與家庭調查（CPS，產生失業率）之間的持續背離 — 兩者長期分歧意味著數據不可靠。年度基準修訂可能追溯性地改變勞動市場敘事。',
+      source: '勞工統計局（BLS）— 每月第一個週五東部時間上午8:30發佈',
+      frequency: '每月',
+      aboveEst: '取決於宏觀體制：在加息/通膨週期中，強勁NFP → 更少降息 → 對利率敏感股利空（"好數據就是壞消息"）。在增長恐慌週期中，強勁NFP是真正利多。務必檢查：(1) 前值修正 — 頭條數字超預期但前值大幅下修，實際為中性或利空；(2) 機構調查與家庭調查的背離；(3) 工資部分的通膨信號。',
+      belowEst: '取決於宏觀體制：在緊縮週期中，疲軟NFP → 更多降息 → 對成長股正面（"壞消息就是好消息"）。在經濟惡化、衰退擔憂主導的週期中，疲軟NFP確認下行趨勢 → 全面利空。務必檢查前值修正 — 頭條未達預期但前值大幅上修，實際為中性或利多。',
+      tags: ['勞動', '高影響力', '聯儲局關注']
+    }
+  },
+  {
+    id: 'gdp',
+    type: 'coincident',
+    en: {
+      name: 'Gross Domestic Product (GDP)',
+      abbr: 'GDP',
+      category: 'Output & Growth',
+      shortDesc: 'Total value of goods and services produced — the broadest measure of economic activity.',
+      definition: 'GDP measures the total monetary value of all finished goods and services produced within a country\'s borders in a specific time period. The BEA releases three estimates: Advance (1 month after quarter end), Second (2 months), and Third/Final (3 months). GDP is reported as a quarter-over-quarter seasonally adjusted annual rate (SAAR). Real GDP adjusts for inflation using the GDP deflator.',
+      formula: 'GDP = C + I + G + (X - M)\nC = Consumer Spending (~70%)\nI = Business Investment (~18%)\nG = Government Spending (~17%)\n(X-M) = Net Exports (typically negative)',
+      theory: 'GDP is the most comprehensive measure of economic output. Its components reveal the drivers of growth: consumer spending, business investment, government expenditure, and trade. As a coincident/lagging indicator, GDP confirms rather than predicts economic conditions. The GDPNow model from the Atlanta Fed provides real-time estimates.',
+      source: 'Bureau of Economic Analysis (BEA) — Advance estimate ~30 days after quarter end',
+      frequency: 'Quarterly (3 estimates)',
+      aboveEst: 'Bullish — confirms economic strength. However, markets often price in expectations ahead, so a beat may already be reflected. Watch composition: consumer-led growth vs. inventory-led growth has different implications.',
+      belowEst: 'Bearish if broad-based weakness. Two consecutive negative quarters traditionally defines a recession (though NBER uses broader criteria). May trigger rate cut expectations and defensive rotation.',
+      tags: ['Output', 'Comprehensive', 'Quarterly']
+    },
+    zh: {
+      name: '國內生產總值 (GDP)',
+      abbr: 'GDP',
+      category: '產出與增長',
+      shortDesc: '商品和服務的總價值 — 最廣泛的經濟活動衡量指標。',
+      definition: 'GDP衡量在特定時期內一國境內生產的所有最終商品和服務的總貨幣價值。BEA發佈三次估算：初步估算（季度結束後1個月）、第二次（2個月）和第三次/最終（3個月）。GDP以季度環比季節性調整年化率（SAAR）報告。實際GDP使用GDP平減指數調整通膨。',
+      formula: 'GDP = C + I + G + (X - M)\nC = 消費者支出（約70%）\nI = 企業投資（約18%）\nG = 政府支出（約17%）\n(X-M) = 淨出口（通常為負）',
+      theory: 'GDP是最全面的經濟產出衡量指標。其組成部分揭示增長驅動力：消費者支出、企業投資、政府支出和貿易。作為同步/滯後指標，GDP確認而非預測經濟狀況。亞特蘭大聯儲的GDPNow模型提供實時估算。',
+      source: '經濟分析局（BEA）— 初步估算在季度結束後約30天',
+      frequency: '每季度（3次估算）',
+      aboveEst: '利多 — 確認經濟實力。然而，市場通常提前定價預期，因此超預期可能已反映。關注構成：消費者主導的增長與庫存主導的增長有不同含義。',
+      belowEst: '若廣泛疲軟則利空。連續兩個季度負增長傳統上定義為衰退（儘管NBER使用更廣泛的標準）。可能觸發降息預期和防禦性輪動。',
+      tags: ['產出', '綜合性', '季度']
+    }
+  },
+  {
+    id: 'pce',
+    type: 'lagging',
+    en: {
+      name: 'Personal Consumption Expenditures Price Index',
+      abbr: 'PCE',
+      category: 'Inflation',
+      shortDesc: 'The Fed\'s preferred inflation measure — broader and more flexible than CPI.',
+      definition: 'The PCE Price Index measures changes in the prices of goods and services purchased by consumers. Unlike CPI, PCE uses chain-weighted methodology that allows for substitution between goods, covers a broader range of expenditures (including those paid on behalf of consumers, like employer-paid health insurance), and reweights the basket dynamically. The Fed explicitly targets 2% annual PCE inflation.',
+      formula: 'PCE Price Index = (Nominal PCE / Real PCE) × 100\nPCE Inflation = ((Current PCE Index / Prior Year PCE Index) - 1) × 100\nMonth-over-Month: ((Current / Prior Month) - 1) × 100',
+      theory: 'PCE is preferred by the Fed over CPI because it accounts for consumer substitution behavior (if beef gets expensive, consumers buy chicken), has broader coverage, and uses dynamically updated weights. This makes it a more accurate reflection of actual inflation experienced by consumers. Practitioner note on base effects: YoY readings can create mathematical illusions at inflation turning points. If last year\'s comparison month had abnormally high/low readings, YoY will mechanically drop/rise regardless of current price trends. Professional analysts therefore focus on 3-month and 6-month annualized MoM rates (3M/6M annualized) to gauge inflation\'s true current temperature, rather than relying solely on headline YoY.',
+      source: 'Bureau of Economic Analysis (BEA) — released last Friday of each month (within Personal Income and Outlays report)',
+      frequency: 'Monthly',
+      aboveEst: 'Hawkish signal — reduces probability of rate cuts. Bearish for growth/tech stocks and bonds. Financial and value stocks may benefit. Dollar strengthens.',
+      belowEst: 'Dovish signal — increases probability of rate cuts. Bullish for growth stocks, bonds, and rate-sensitive sectors (REITs, utilities). Dollar weakens.',
+      tags: ['Inflation', 'Fed Target', 'Chain-Weighted']
+    },
+    zh: {
+      name: '個人消費支出價格指數',
+      abbr: 'PCE',
+      category: '通膨',
+      shortDesc: '聯儲局首選的通膨指標 — 比CPI更廣泛且更靈活。',
+      definition: 'PCE價格指數衡量消費者購買的商品和服務價格的變化。與CPI不同，PCE使用鏈式加權方法，允許商品之間的替代，涵蓋更廣泛的支出範圍（包括代消費者支付的支出，如雇主支付的健康保險），並動態調整權重。聯儲局明確以2%的年PCE通膨為目標。',
+      formula: 'PCE價格指數 = (名義PCE / 實際PCE) × 100\nPCE通膨率 = ((當前PCE指數 / 上年PCE指數) - 1) × 100\n月環比：((當月 / 上月) - 1) × 100',
+      theory: 'PCE被聯儲局優先於CPI使用，因為它考慮了消費者替代行為（如果牛肉變貴，消費者買雞肉）、有更廣泛的覆蓋範圍，並使用動態更新的權重。這使其更準確地反映消費者實際經歷的通膨。 基期效應實戰提醒：年增率（YoY）在通膨轉折期會產生數學上的錯覺。若去年同期數據異常高（高基期），即使物價未下跌，今年的YoY在數學上也會自動大幅下降。因此，專業分析師在通膨轉折期更看重3個月或6個月的月環比年化率（3M/6M Annualized MoM），這才是通膨「當前」的真實溫度，而非僅依賴頭條YoY。',
+      source: '經濟分析局（BEA）— 每月最後一個週五發佈（在個人收入和支出報告中）',
+      frequency: '每月',
+      aboveEst: '鷹派信號 — 降低降息機率。對成長/科技股和債券利空。金融和價值股可能受益。美元走強。',
+      belowEst: '鴿派信號 — 增加降息機率。對成長股、債券和利率敏感板塊（REITs、公用事業）利多。美元走弱。',
+      tags: ['通膨', '聯儲局目標', '鏈式加權']
+    }
+  },
+  {
+    id: 'core_pce',
+    type: 'lagging',
+    en: {
+      name: 'Core PCE Price Index',
+      abbr: 'Core PCE',
+      category: 'Inflation',
+      shortDesc: 'PCE excluding food & energy — the Fed\'s PRIMARY inflation gauge for policy decisions.',
+      definition: 'Core PCE excludes volatile food and energy components from the headline PCE Price Index. This is the Federal Reserve\'s single most important inflation metric for setting monetary policy, as it better captures underlying inflation trends by removing components subject to supply shocks (oil prices, weather-driven food prices). The Fed\'s 2% target is measured against Core PCE.',
+      formula: 'Core PCE = PCE Price Index - Food Component - Energy Component\nSuper Core (Services ex-Housing) = Core PCE - Core Goods - Housing Services\nThis "super core" measure is increasingly watched by the Fed',
+      theory: 'Food and energy prices are driven largely by supply factors (weather, geopolitics) rather than demand-side dynamics the Fed can influence. By excluding them, Core PCE reveals the underlying inflation trend driven by economic slack, wage growth, and expectations — factors the Fed can actually address through monetary policy. Practitioner note on base effects: YoY readings can create mathematical illusions at inflation turning points. If last year\'s comparison month had abnormally high/low readings, YoY will mechanically drop/rise regardless of current price trends. Professional analysts therefore focus on 3-month and 6-month annualized MoM rates (3M/6M annualized) to gauge inflation\'s true current temperature, rather than relying solely on headline YoY.',
+      source: 'Bureau of Economic Analysis (BEA) — same release as headline PCE',
+      frequency: 'Monthly',
+      aboveEst: 'Very hawkish — the most important single data point for Fed policy. Strongly reduces cut probability. Tech and growth sell off. Bond yields spike. Dollar rallies. "Higher for longer" narrative strengthens.',
+      belowEst: 'Very dovish — the clearest green light for rate cuts. Strong rally in growth, tech, and bonds. REITs and utilities surge. Dollar weakens. "Goldilocks" narrative emerges if paired with solid growth.',
+      tags: ['Inflation', 'Fed Primary Gauge', 'Policy Critical']
+    },
+    zh: {
+      name: '核心PCE價格指數',
+      abbr: 'Core PCE',
+      category: '通膨',
+      shortDesc: '排除食品和能源的PCE — 聯儲局政策決策的最主要通膨指標。',
+      definition: '核心PCE從總體PCE價格指數中排除波動性較大的食品和能源成分。這是聯儲局設定貨幣政策最重要的單一通膨指標，因為它通過移除受供給衝擊影響的成分（油價、天氣導致的食品價格）更好地捕捉潛在通膨趨勢。聯儲局的2%目標以核心PCE衡量。',
+      formula: '核心PCE = PCE價格指數 - 食品成分 - 能源成分\n超級核心（服務業除住房）= 核心PCE - 核心商品 - 住房服務\n聯儲局越來越關注這個"超級核心"指標',
+      theory: '食品和能源價格主要受供給因素（天氣、地緣政治）驅動，而非聯儲局可影響的需求面動態。排除它們後，核心PCE揭示了由經濟鬆弛度、工資增長和預期驅動的潛在通膨趨勢 — 這些是聯儲局通過貨幣政策實際能夠解決的因素。 基期效應實戰提醒：年增率（YoY）在通膨轉折期會產生數學上的錯覺。若去年同期數據異常高（高基期），即使物價未下跌，今年的YoY在數學上也會自動大幅下降。因此，專業分析師在通膨轉折期更看重3個月或6個月的月環比年化率（3M/6M Annualized MoM），這才是通膨「當前」的真實溫度，而非僅依賴頭條YoY。',
+      source: '經濟分析局（BEA）— 與總體PCE同一報告發佈',
+      frequency: '每月',
+      aboveEst: '非常鷹派 — 聯儲局政策最重要的單一數據點。強烈降低降息機率。科技和成長股拋售。債券收益率飆升。美元上漲。"更高更久"敘事增強。',
+      belowEst: '非常鴿派 — 最明確的降息綠燈。成長股、科技股和債券強勁反彈。REITs和公用事業飆升。美元走弱。若搭配穩健增長則出現"金髮女孩"敘事。',
+      tags: ['通膨', '聯儲局首要指標', '政策關鍵']
+    }
+  },
+  {
+    id: 'cpi',
+    type: 'lagging',
+    en: {
+      name: 'Consumer Price Index (CPI)',
+      abbr: 'CPI',
+      category: 'Inflation',
+      shortDesc: 'Most widely known inflation measure tracking price changes in a fixed basket of consumer goods.',
+      definition: 'The CPI measures the average change over time in prices paid by urban consumers for a fixed basket of goods and services. CPI-U covers all urban consumers (~93% of population). Core CPI excludes food and energy. Key categories include shelter (~36% weight), food (~13%), energy (~7%), medical care, transportation, and apparel. Unlike PCE, CPI uses a fixed-weight Laspeyres methodology.',
+      formula: 'CPI = (Cost of Basket in Current Period / Cost of Basket in Base Period) × 100\nInflation Rate = ((CPI_current - CPI_prior) / CPI_prior) × 100\nCore CPI = CPI excluding food and energy',
+      theory: 'While PCE is the Fed\'s preferred measure, CPI often has a larger market impact due to earlier release timing and its use in TIPS adjustments, Social Security COLAs, and wage negotiations. CPI tends to run slightly higher than PCE due to its fixed-weight methodology (no substitution effect) and narrower scope. Practitioner note on base effects: YoY readings can create mathematical illusions at inflation turning points. If last year\'s comparison month had abnormally high/low readings, YoY will mechanically drop/rise regardless of current price trends. Professional analysts therefore focus on 3-month and 6-month annualized MoM rates (3M/6M annualized) to gauge inflation\'s true current temperature, rather than relying solely on headline YoY.',
+      source: 'Bureau of Labor Statistics (BLS) — released around the 10th-14th of each month at 8:30 AM ET',
+      frequency: 'Monthly',
+      aboveEst: 'Strongly hawkish — one of the highest market-impact releases. Bonds sell off (yields rise). Growth stocks decline. Fed rate cut expectations decrease. Dollar strengthens. Gold may decline.',
+      belowEst: 'Strongly dovish — triggers bond rally, growth stock rally, rate cut expectations increase. "Disinflation" narrative strengthens. Rate-sensitive sectors like tech, REITs benefit most.',
+      tags: ['Inflation', 'High Impact', 'Fixed Weight']
+    },
+    zh: {
+      name: '消費者物價指數 (CPI)',
+      abbr: 'CPI',
+      category: '通膨',
+      shortDesc: '最廣為人知的通膨指標，追蹤固定一籃子消費品的價格變化。',
+      definition: 'CPI衡量城市消費者為固定一籃子商品和服務支付的價格隨時間的平均變化。CPI-U涵蓋所有城市消費者（約93%的人口）。核心CPI排除食品和能源。主要類別包括住房（約36%權重）、食品（約13%）、能源（約7%）、醫療保健、交通和服裝。與PCE不同，CPI使用固定權重的拉斯帕耶斯方法。',
+      formula: 'CPI = (當期一籃子成本 / 基期一籃子成本) × 100\n通膨率 = ((當前CPI - 上期CPI) / 上期CPI) × 100\n核心CPI = CPI排除食品和能源',
+      theory: '雖然PCE是聯儲局首選指標，但CPI由於更早的發佈時間及其在TIPS調整、社會保障COLA和工資談判中的使用，通常對市場影響更大。由於固定權重方法（無替代效應）和較窄的範圍，CPI傾向略高於PCE。 基期效應實戰提醒：年增率（YoY）在通膨轉折期會產生數學上的錯覺。若去年同期數據異常高（高基期），即使物價未下跌，今年的YoY在數學上也會自動大幅下降。因此，專業分析師在通膨轉折期更看重3個月或6個月的月環比年化率（3M/6M Annualized MoM），這才是通膨「當前」的真實溫度，而非僅依賴頭條YoY。',
+      source: '勞工統計局（BLS）— 每月約10-14日東部時間上午8:30發佈',
+      frequency: '每月',
+      aboveEst: '強烈鷹派 — 市場影響力最高的發佈之一。債券拋售（收益率上升）。成長股下跌。聯儲局降息預期下降。美元走強。黃金可能下跌。',
+      belowEst: '強烈鴿派 — 觸發債券反彈、成長股反彈，降息預期增加。"去通膨"敘事增強。科技、REITs等利率敏感板塊受益最多。',
+      tags: ['通膨', '高影響力', '固定權重']
+    }
+  },
+  {
+    id: 'retail_sales',
+    type: 'coincident',
+    en: {
+      name: 'Retail Sales',
+      abbr: 'RETAIL',
+      category: 'Consumer Spending',
+      shortDesc: 'Monthly total receipts at retail stores — direct measure of consumer demand.',
+      definition: 'Retail Sales measures total receipts at stores that sell finished goods to consumers. The "control group" excludes autos, gasoline, building materials, and food services — this feeds directly into the GDP consumer spending calculation. Retail sales are reported in nominal terms (not inflation-adjusted).',
+      formula: 'Headline = Total retail and food services sales\nEx-Autos = Headline - Motor vehicle dealers\nControl Group = Headline - Autos - Gas - Building Materials - Food Services\n(Control Group feeds into GDP PCE calculation)',
+      theory: 'Retail sales provide a real-time measure of consumer demand. Since consumer spending is ~70% of GDP, this indicator directly reflects economic momentum. The control group is most important for GDP calculation. Nominal reporting means real growth must be inferred by adjusting for CPI. This is a critical trap: if retail sales rise +0.3% MoM but CPI rises +0.4% MoM, real purchase volumes actually declined — the sales growth was entirely driven by price increases, not genuine demand. This distinction is essential in stagflationary environments where nominal data masks real-economy deterioration. Always compute Real Retail Sales = Nominal Retail Sales - CPI to assess true consumer demand.',
+      source: 'U.S. Census Bureau — released around the 15th of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Bullish for consumer discretionary stocks and the economy broadly. However, strong spending can be inflationary, reducing rate cut odds. Watch the control group number most closely.',
+      belowEst: 'Bearish for retail and consumer discretionary. If persistent, signals consumer fatigue which can snowball through the economy. May increase rate cut expectations if other data also soft.',
+      tags: ['Consumer', 'Spending', 'GDP Input']
+    },
+    zh: {
+      name: '零售銷售',
+      abbr: 'RETAIL',
+      category: '消費者支出',
+      shortDesc: '每月零售商店總收入 — 消費者需求的直接衡量。',
+      definition: '零售銷售衡量向消費者銷售成品的商店總收入。"控制組"排除汽車、汽油、建材和餐飲服務 — 直接納入GDP消費者支出計算。零售銷售以名義值（未經通膨調整）報告。',
+      formula: '總體 = 零售和餐飲服務總銷售額\n除汽車 = 總體 - 機動車經銷商\n控制組 = 總體 - 汽車 - 汽油 - 建材 - 餐飲服務\n（控制組納入GDP PCE計算）',
+      theory: '零售銷售提供消費者需求的實時衡量。由於消費者支出約佔GDP的70%，此指標直接反映經濟動能。控制組對GDP計算最重要。名義報告意味著實際增長需通過CPI調整來推斷。這是一個關鍵陷阱：若零售銷售月增+0.3%，但同期CPI月增+0.4%，實質購買量其實是下降的 — 銷售額增長完全由物價上漲撐起，而非真實需求。此區別在滯脹環境中至關重要，名義數據會掩蓋實體經濟的惡化。務必計算實質零售銷售 = 名義零售銷售 - CPI，以評估真實消費者需求。',
+      source: '美國人口普查局 — 每月約15日發佈',
+      frequency: '每月',
+      aboveEst: '對消費可選股票和整體經濟利多。然而，強勁消費可能推升通膨，降低降息機率。最密切關注控制組數據。',
+      belowEst: '對零售和消費可選利空。若持續，信號消費者疲勞，可能通過經濟體系產生滾雪球效應。若其他數據也疲軟，可能增加降息預期。',
+      tags: ['消費者', '支出', 'GDP投入']
+    }
+  },
+  {
+    id: 'industrial_prod',
+    type: 'coincident',
+    en: {
+      name: 'Industrial Production & Capacity Utilization',
+      abbr: 'IP/CapU',
+      category: 'Output & Growth',
+      shortDesc: 'Measures real output of manufacturing, mining, and utilities plus the percentage of capacity in use.',
+      definition: 'Industrial Production measures the real (inflation-adjusted) output of manufacturing, mining, and electric and gas utilities. Capacity Utilization measures the percentage of resources used by these industries. Together they provide a comprehensive picture of supply-side economic conditions. Normal capacity utilization runs ~78-80%.',
+      formula: 'IP Index = Weighted sum of physical output measures (base year = 100)\nCapacity Utilization = (Industrial Production / Potential Output) × 100\nAbove 82-85% historically signals inflation pressure',
+      theory: 'Industrial production tracks the supply side of the economy in real-time. Capacity utilization is particularly important: high utilization (>82%) suggests inflationary bottlenecks, while low utilization (<75%) suggests significant economic slack. This indicator helps the Fed gauge supply-demand imbalances.',
+      source: 'Federal Reserve Board — released around the 15th of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Mixed: strong output is bullish for industrials but high capacity utilization (>82%) raises inflation concerns. Manufacturing-heavy stocks benefit. Watch for bottleneck signals.',
+      belowEst: 'Bearish for industrials and materials. Low capacity utilization suggests economic slack, which is disinflationary but signals weak demand. May support rate cut case.',
+      tags: ['Output', 'Supply-Side', 'Manufacturing']
+    },
+    zh: {
+      name: '工業生產與產能利用率',
+      abbr: 'IP/CapU',
+      category: '產出與增長',
+      shortDesc: '衡量製造業、採礦業和公用事業的實際產出及產能使用百分比。',
+      definition: '工業生產衡量製造業、採礦業和電力與天然氣公用事業的實際（經通膨調整）產出。產能利用率衡量這些行業使用的資源百分比。兩者共同提供供給面經濟狀況的全面圖景。正常產能利用率約78-80%。',
+      formula: 'IP指數 = 實物產出衡量的加權總和（基準年 = 100）\n產能利用率 = (工業生產 / 潛在產出) × 100\n高於82-85%歷史上信號通膨壓力',
+      theory: '工業生產實時追蹤經濟的供給面。產能利用率特別重要：高利用率（>82%）暗示通膨瓶頸，而低利用率（<75%）暗示顯著的經濟閒置。此指標幫助聯儲局衡量供需失衡。',
+      source: '聯邦儲備委員會 — 每月約15日發佈',
+      frequency: '每月',
+      aboveEst: '喜憂參半：強勁產出對工業利多，但高產能利用率（>82%）引發通膨擔憂。製造業重的股票受益。注意瓶頸信號。',
+      belowEst: '對工業和材料利空。低產能利用率暗示經濟閒置，有去通膨效果但信號需求疲軟。可能支持降息論據。',
+      tags: ['產出', '供給面', '製造業']
+    }
+  },
+  {
+    id: 'personal_income',
+    type: 'coincident',
+    en: {
+      name: 'Personal Income & Spending',
+      abbr: 'PI&S',
+      category: 'Consumer Spending',
+      shortDesc: 'Monthly household income and expenditure data — includes the critical PCE inflation readings.',
+      definition: 'The Personal Income and Outlays report includes personal income (wages, dividends, transfers), personal consumption expenditures (spending), and the PCE Price Index. The personal saving rate is derived as: (Income - Spending) / Income. This report connects the labor market to consumer spending to inflation in a single release.',
+      formula: 'Personal Saving Rate = ((Personal Income - Personal Outlays) / Disposable Personal Income) × 100\nReal Spending Growth = Nominal Spending Growth - PCE Inflation',
+      theory: 'Income drives spending drives growth. This report links all three in a single release. The saving rate provides a crucial signal: declining savings may indicate consumers are stretching to maintain spending, which is unsustainable. Rising savings during income growth suggests future spending capacity.',
+      source: 'Bureau of Economic Analysis (BEA) — released last business day of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Income beat is bullish (sustainable spending power). Spending beat is bullish short-term but may raise inflation concerns. Watch the saving rate for sustainability signals.',
+      belowEst: 'Income miss signals labor market softening. Spending miss directly impacts GDP growth. A rising saving rate with falling spending may signal consumer caution — bearish near-term but builds future spending capacity.',
+      tags: ['Income', 'Spending', 'Saving Rate']
+    },
+    zh: {
+      name: '個人收入與支出',
+      abbr: 'PI&S',
+      category: '消費者支出',
+      shortDesc: '每月家庭收入和支出數據 — 包含關鍵的PCE通膨讀數。',
+      definition: '個人收入和支出報告包括個人收入（工資、股息、轉移支付）、個人消費支出（消費）和PCE價格指數。個人儲蓄率為：（收入 - 支出）/ 收入。此報告在單次發佈中連接了勞動市場、消費者支出和通膨。',
+      formula: '個人儲蓄率 = ((個人收入 - 個人支出) / 可支配個人收入) × 100\n實際消費增長 = 名義消費增長 - PCE通膨',
+      theory: '收入驅動消費驅動增長。此報告在單次發佈中連接三者。儲蓄率提供關鍵信號：儲蓄下降可能表明消費者在勉強維持消費，這不可持續。收入增長期間儲蓄上升則暗示未來消費能力。',
+      source: '經濟分析局（BEA）— 每月最後一個工作日發佈',
+      frequency: '每月',
+      aboveEst: '收入超預期利多（可持續的消費能力）。消費超預期短期利多但可能引發通膨擔憂。關注儲蓄率的可持續性信號。',
+      belowEst: '收入未達預期信號勞動市場疲軟。消費未達預期直接影響GDP增長。儲蓄率上升伴隨消費下降可能信號消費者謹慎 — 近期利空但為未來消費能力奠定基礎。',
+      tags: ['收入', '支出', '儲蓄率']
+    }
+  },
+  // ===== LAGGING =====
+  {
+    id: 'unemployment',
+    type: 'lagging',
+    en: {
+      name: 'Unemployment Rate',
+      abbr: 'U-Rate',
+      category: 'Labor Market',
+      shortDesc: 'Percentage of the labor force that is unemployed and actively seeking work.',
+      definition: 'The unemployment rate measures the percentage of the total labor force that is jobless and actively looking for employment. Based on the Household Survey (CPS) of ~60,000 households. U-3 is the headline rate; U-6 includes discouraged workers and part-time for economic reasons. The Sahm Rule: when the 3-month average rises 0.5% above its 12-month low, a recession has begun. Critical nuance: a falling unemployment rate is not always positive — if the Labor Force Participation Rate (LFPR) is also declining, it means discouraged workers are dropping out of the labor force entirely, which mathematically lowers the unemployment rate but actually signals economic weakness.',
+      formula: 'Unemployment Rate (U-3) = (Unemployed / Labor Force) × 100\nLabor Force = Employed + Unemployed\nU-6 = (Unemployed + Marginally Attached + Part-Time for Economic Reasons) / (Labor Force + Marginally Attached) × 100',
+      theory: 'Unemployment lags the business cycle because firms delay layoffs during downturns (hoarding labor) and delay hiring during recoveries (waiting for confirmation). The Sahm Rule has identified every recession since 1970 in real-time. Full employment is estimated at 3.5-4.5% (NAIRU), below which wage inflation pressures build. Always cross-reference with LFPR and the Employment-to-Population Ratio for a true picture — the unemployment rate alone can be misleading when participation shifts.',
+      source: 'Bureau of Labor Statistics (BLS) — released with NFP on first Friday of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Dovish — increases rate cut probability. "Bad news is good news" if market expects easier policy. But if unemployment rises sharply, recession fears dominate and stocks sell off broadly.',
+      belowEst: 'Hawkish — tight labor market may keep Fed on hold or delay cuts. Good for cyclicals if economy is stable. Wage inflation concerns may weigh on profit margins.',
+      tags: ['Labor', 'Sahm Rule', 'Lagging']
+    },
+    zh: {
+      name: '失業率',
+      abbr: 'U-Rate',
+      category: '勞動市場',
+      shortDesc: '勞動力中失業且積極尋找工作的百分比。',
+      definition: '失業率衡量總勞動力中失業且積極尋找工作的百分比。基於對約60,000戶家庭的住戶調查（CPS）。U-3為頭條失業率；U-6包括灰心工人和因經濟原因的兼職。薩姆法則：當3個月平均值比12個月低點高出0.5%時，衰退已經開始。關鍵警示：失業率下降不一定是好事 — 若勞動參與率（LFPR）同時下降，代表灰心工人放棄求職退出市場，數學上會拉低失業率，但實際上是經濟疲軟的信號。',
+      formula: '失業率（U-3）= (失業人數 / 勞動力) × 100\n勞動力 = 就業人數 + 失業人數\nU-6 = (失業 + 邊際依附 + 因經濟原因兼職) / (勞動力 + 邊際依附) × 100',
+      theory: '失業率滯後於商業週期，因為企業在經濟下滑時延遲裁員（勞動囤積），在復甦時延遲招聘（等待確認）。薩姆法則自1970年以來已實時識別每次衰退。充分就業估計在3.5-4.5%（NAIRU），低於此水平工資通膨壓力增加。務必交叉比對勞動參與率和就業人口比率 — 當參與率變動時，單獨看失業率可能產生誤導。',
+      source: '勞工統計局（BLS）— 每月第一個週五與NFP同時發佈',
+      frequency: '每月',
+      aboveEst: '鴿派 — 增加降息機率。若市場預期更寬鬆政策則"壞消息就是好消息"。但若失業率急劇上升，衰退擔憂主導，股市全面拋售。',
+      belowEst: '鷹派 — 緊俏勞動市場可能使聯儲局按兵不動或延遲降息。若經濟穩定對週期性利多。工資通膨擔憂可能壓縮利潤率。',
+      tags: ['勞動', '薩姆法則', '滯後']
+    }
+  },
+  {
+    id: 'avg_hourly_earnings',
+    type: 'lagging',
+    en: {
+      name: 'Average Hourly Earnings (AHE)',
+      abbr: 'AHE',
+      category: 'Labor Market',
+      shortDesc: 'Average pay per hour for private nonfarm workers — key wage inflation indicator.',
+      definition: 'Average Hourly Earnings measures the average gross pay per hour for all employees on private nonfarm payrolls. Released as part of the Employment Situation Report alongside NFP. YoY and MoM growth rates are closely watched as indicators of wage-driven inflation pressure. Often compared to productivity growth to assess unit labor cost trends.',
+      formula: 'AHE = Total Private Nonfarm Earnings / Total Private Nonfarm Hours\nYoY Growth = ((Current AHE / AHE 12 months ago) - 1) × 100\nReal Wage Growth = AHE Growth - CPI Inflation',
+      theory: 'Wages are the largest cost for most businesses. Rapid wage growth without corresponding productivity gains leads to cost-push inflation (wage-price spiral). The Fed watches AHE relative to productivity growth: if wages grow faster than productivity, unit labor costs rise, feeding into prices. Important: AHE is a nominal figure. Real Wage Growth = AHE YoY - CPI YoY. If AHE grows +4% but CPI is +5%, workers are losing purchasing power despite nominal wage increases — this erodes consumer spending capacity over time and is a key stagflation signal.',
+      source: 'Bureau of Labor Statistics (BLS) — released with NFP on first Friday of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Complex: good for consumers (real income) but potentially inflationary. Hawkish for Fed. Margin pressure for labor-intensive industries (restaurants, retail, healthcare). Tech and capital-intensive sectors less affected.',
+      belowEst: 'Supports disinflation thesis — dovish for Fed. Relief for labor-intensive businesses. But if too weak, signals consumer purchasing power erosion, eventually bearish for spending.',
+      tags: ['Wages', 'Inflation Pressure', 'Labor Cost']
+    },
+    zh: {
+      name: '平均時薪 (AHE)',
+      abbr: 'AHE',
+      category: '勞動市場',
+      shortDesc: '私人非農工人平均每小時薪資 — 關鍵工資通膨指標。',
+      definition: '平均時薪衡量私人非農就業所有僱員的平均每小時總薪資。與NFP一起在就業形勢報告中發佈。年增率和月增率被密切關注作為工資驅動通膨壓力的指標。常與生產力增長比較以評估單位勞動成本趨勢。',
+      formula: 'AHE = 私人非農總收入 / 私人非農總工時\n年增率 = ((當前AHE / 12個月前AHE) - 1) × 100\n實際工資增長 = AHE增長 - CPI通膨',
+      theory: '工資是大多數企業的最大成本。快速工資增長若無相應的生產力提高會導致成本推動型通膨（工資-物價螺旋）。聯儲局觀察AHE相對於生產力增長：若工資增長快於生產力，單位勞動成本上升，推動物價上漲。重要提醒：AHE為名義數據。實際工資增長 = AHE年增率 - CPI年增率。若AHE增長+4%但CPI為+5%，工人實際上正在失去購買力，儘管名義工資在增加 — 這會隨時間侵蝕消費者支出能力，是滯脹的關鍵信號。',
+      source: '勞工統計局（BLS）— 每月第一個週五與NFP同時發佈',
+      frequency: '每月',
+      aboveEst: '複雜：對消費者有利（實際收入）但可能推升通膨。對聯儲局鷹派。勞動密集型行業（餐飲、零售、醫療）利潤壓力。科技和資本密集型行業影響較小。',
+      belowEst: '支持去通膨論點 — 對聯儲局鴿派。勞動密集型企業鬆一口氣。但若過於疲軟，信號消費者購買力侵蝕，最終對消費利空。',
+      tags: ['工資', '通膨壓力', '勞動成本']
+    }
+  },
+  {
+    id: 'ppi',
+    type: 'lagging',
+    en: {
+      name: 'Producer Price Index (PPI)',
+      abbr: 'PPI',
+      category: 'Inflation',
+      shortDesc: 'Wholesale-level inflation measuring price changes from the seller\'s perspective.',
+      definition: 'The PPI measures the average change over time in selling prices received by domestic producers for their output. It tracks prices at three stages: crude goods, intermediate goods, and finished goods. PPI for Final Demand is the headline number. Because PPI measures costs before they reach consumers, it can signal upcoming CPI trends.',
+      formula: 'PPI = (Current Period Selling Prices / Base Period Selling Prices) × 100\nFinal Demand PPI includes: goods (35.6%), services (64.4%)\nCore PPI = PPI excluding food, energy, and trade services',
+      theory: 'PPI captures inflation in the production pipeline. Rising producer prices are often passed through to consumers, making PPI a potential leading indicator of CPI. However, the pass-through is not always complete — firms may absorb costs through margin compression. The services component is increasingly important.',
+      source: 'Bureau of Labor Statistics (BLS) — released around the 13th of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Mildly hawkish — signals pipeline inflation pressure. May indicate upcoming CPI pressure. Margin squeeze for companies that cannot pass through costs. Input-cost sensitive industries most affected.',
+      belowEst: 'Mildly dovish — reduced cost pressure supports margins. May precede softer CPI. Positive for corporate profitability. Supports the disinflation narrative.',
+      tags: ['Inflation', 'Wholesale', 'Pipeline Pressure']
+    },
+    zh: {
+      name: '生產者物價指數 (PPI)',
+      abbr: 'PPI',
+      category: '通膨',
+      shortDesc: '批發層面通膨，從賣方角度衡量價格變化。',
+      definition: 'PPI衡量國內生產者為其產出收到的銷售價格隨時間的平均變化。追蹤三個階段的價格：原材料、中間品和成品。最終需求PPI為頭條數字。因為PPI在價格到達消費者之前衡量成本，可以信號即將到來的CPI趨勢。',
+      formula: 'PPI = (當期銷售價格 / 基期銷售價格) × 100\n最終需求PPI包括：商品（35.6%）、服務（64.4%）\n核心PPI = PPI排除食品、能源和貿易服務',
+      theory: 'PPI捕捉生產管道中的通膨。上漲的生產者價格通常傳導至消費者，使PPI成為CPI的潛在領先指標。然而，傳導並不總是完全的 — 企業可能通過利潤壓縮吸收成本。服務業部分越來越重要。',
+      source: '勞工統計局（BLS）— 每月約13日發佈',
+      frequency: '每月',
+      aboveEst: '輕度鷹派 — 信號管道通膨壓力。可能指示即將到來的CPI壓力。無法轉嫁成本的公司利潤壓縮。投入成本敏感行業受影響最大。',
+      belowEst: '輕度鴿派 — 減少的成本壓力支持利潤率。可能先於更溫和的CPI。對企業盈利正面。支持去通膨敘事。',
+      tags: ['通膨', '批發', '管道壓力']
+    }
+  },
+  {
+    id: 'core_cpi',
+    type: 'lagging',
+    en: {
+      name: 'Core CPI (CPI ex Food & Energy)',
+      abbr: 'Core CPI',
+      category: 'Inflation',
+      shortDesc: 'CPI excluding volatile food and energy — reveals underlying consumer inflation trends.',
+      definition: 'Core CPI strips out food and energy prices from the headline CPI to reveal the underlying inflation trend. Shelter (rent and owners\' equivalent rent) is the largest component at ~43% of core CPI. "Supercore CPI" (core services ex-shelter) is increasingly watched by the Fed as the most demand-sensitive inflation measure.',
+      formula: 'Core CPI = CPI - Food - Energy components\nSupercore CPI = Core Services CPI - Shelter\nShelter accounts for ~43% of Core CPI\nUsed cars, airfares, medical care are key volatile components within core',
+      theory: 'Core CPI helps identify persistent inflation trends by removing supply-shock-driven components. The heavy weighting of shelter makes it slow-moving — shelter disinflation feeds through with a long lag. Markets are increasingly focused on "supercore" to gauge services inflation driven by wages and demand. Practitioner note on base effects: YoY readings can create mathematical illusions at inflation turning points. If last year\'s comparison month had abnormally high/low readings, YoY will mechanically drop/rise regardless of current price trends. Professional analysts therefore focus on 3-month and 6-month annualized MoM rates (3M/6M annualized) to gauge inflation\'s true current temperature, rather than relying solely on headline YoY.',
+      source: 'Bureau of Labor Statistics (BLS) — released same day as headline CPI',
+      frequency: 'Monthly',
+      aboveEst: 'Very hawkish — signals sticky inflation. Bonds sell off sharply. Rate cut expectations decrease. Growth stocks decline. Focus shifts to whether shelter or supercore is driving the miss.',
+      belowEst: 'Very dovish — most reliable disinflationary signal. Strong bond and stock rally. Rate cut expectations increase. Shelter disinflation is the key driver to watch for sustained improvement.',
+      tags: ['Inflation', 'Sticky', 'Shelter-Heavy']
+    },
+    zh: {
+      name: '核心CPI（CPI除食品和能源）',
+      abbr: 'Core CPI',
+      category: '通膨',
+      shortDesc: 'CPI排除波動性食品和能源 — 揭示潛在消費者通膨趨勢。',
+      definition: '核心CPI從頭條CPI中剝離食品和能源價格，揭示潛在通膨趨勢。住房（租金和業主等價租金）是最大的組成部分，約佔核心CPI的43%。"超級核心CPI"（核心服務除住房）越來越被聯儲局關注，作為最敏感於需求的通膨指標。',
+      formula: '核心CPI = CPI - 食品 - 能源成分\n超級核心CPI = 核心服務CPI - 住房\n住房約佔核心CPI的43%\n二手車、機票、醫療是核心內的關鍵波動成分',
+      theory: '核心CPI通過移除供給衝擊驅動的成分幫助識別持續性通膨趨勢。住房的高權重使其移動緩慢 — 住房去通膨以長滯後傳導。市場越來越關注"超級核心"以衡量由工資和需求驅動的服務業通膨。 基期效應實戰提醒：年增率（YoY）在通膨轉折期會產生數學上的錯覺。若去年同期數據異常高（高基期），即使物價未下跌，今年的YoY在數學上也會自動大幅下降。因此，專業分析師在通膨轉折期更看重3個月或6個月的月環比年化率（3M/6M Annualized MoM），這才是通膨「當前」的真實溫度，而非僅依賴頭條YoY。',
+      source: '勞工統計局（BLS）— 與頭條CPI同日發佈',
+      frequency: '每月',
+      aboveEst: '非常鷹派 — 信號黏性通膨。債券大幅拋售。降息預期下降。成長股下跌。焦點轉向住房還是超級核心驅動的超預期。',
+      belowEst: '非常鴿派 — 最可靠的去通膨信號。債券和股票強勁反彈。降息預期增加。住房去通膨是持續改善的關鍵驅動力。',
+      tags: ['通膨', '黏性', '住房主導']
+    }
+  },
+  {
+    id: 'unit_labor_cost',
+    type: 'lagging',
+    en: {
+      name: 'Unit Labor Cost & Productivity',
+      abbr: 'ULC',
+      category: 'Labor Market',
+      shortDesc: 'Labor cost per unit of output — a fundamental measure of cost-push inflation pressure.',
+      definition: 'Unit Labor Cost measures the cost of labor required to produce one unit of output. Calculated as compensation per hour divided by output per hour (productivity). Rising ULC means labor costs are growing faster than productivity, creating inflationary pressure. Nonfarm business sector productivity is the primary measure.',
+      formula: 'Unit Labor Cost = Compensation per Hour / Output per Hour\nProductivity = Output per Hour\nULC Growth = Compensation Growth - Productivity Growth',
+      theory: 'ULC is the core measure of underlying inflationary pressure from the labor market. If workers are paid 4% more but produce only 2% more, the 2% gap feeds into inflation. The Fed\'s 2% inflation target is consistent with ~3.5-4% wage growth if productivity grows at 1.5-2%.',
+      source: 'Bureau of Labor Statistics (BLS) — released quarterly (about 1 month after GDP)',
+      frequency: 'Quarterly',
+      aboveEst: 'Hawkish — confirms cost-push inflation. Companies face margin pressure. May trigger price increases, feeding the wage-price spiral narrative. Industries with thin margins most vulnerable.',
+      belowEst: 'Dovish — productivity-driven disinflation. Positive for corporate margins. Supports the "immaculate disinflation" thesis where inflation falls without a recession.',
+      tags: ['Productivity', 'Labor Cost', 'Inflation Fundamental']
+    },
+    zh: {
+      name: '單位勞動成本與生產力',
+      abbr: 'ULC',
+      category: '勞動市場',
+      shortDesc: '每單位產出的勞動成本 — 成本推動型通膨壓力的基本衡量。',
+      definition: '單位勞動成本衡量生產一單位產出所需的勞動成本。計算方式為每小時報酬除以每小時產出（生產力）。ULC上升意味著勞動成本增長快於生產力，產生通膨壓力。非農商業部門生產力是主要衡量。',
+      formula: '單位勞動成本 = 每小時報酬 / 每小時產出\n生產力 = 每小時產出\nULC增長 = 報酬增長 - 生產力增長',
+      theory: 'ULC是勞動市場潛在通膨壓力的核心衡量。若工人多獲得4%的報酬但只多生產2%，這2%的差距就會轉化為通膨。聯儲局2%的通膨目標與約3.5-4%的工資增長一致（假設生產力增長1.5-2%）。',
+      source: '勞工統計局（BLS）— 每季度發佈（約在GDP之後1個月）',
+      frequency: '每季度',
+      aboveEst: '鷹派 — 確認成本推動型通膨。企業面臨利潤壓力。可能觸發提價，強化工資-物價螺旋敘事。薄利行業最脆弱。',
+      belowEst: '鴿派 — 生產力驅動的去通膨。對企業利潤正面。支持"完美去通膨"論點，即通膨下降而不出現衰退。',
+      tags: ['生產力', '勞動成本', '通膨基本面']
+    }
+  },
+  {
+    id: 'fed_funds',
+    type: 'lagging',
+    en: {
+      name: 'Federal Funds Rate',
+      abbr: 'FFR',
+      category: 'Monetary Policy',
+      shortDesc: 'The Fed\'s primary policy rate — the overnight interbank lending rate target.',
+      definition: 'The Federal Funds Rate is the interest rate at which depository institutions lend reserve balances to other depository institutions overnight. The Federal Open Market Committee (FOMC) sets the target range, and changes are implemented through open market operations and the interest on reserve balances. Rate decisions come with the "dot plot" projections and Summary of Economic Projections (SEP) four times per year.',
+      formula: 'Effective FFR = Volume-Weighted Median of overnight fed funds transactions\nReal FFR = FFR - PCE Inflation\nTaylor Rule: FFR = r* + π + 0.5(π - π*) + 0.5(y - y*)\nwhere r* = neutral rate, π = inflation, π* = target, y-y* = output gap',
+      theory: 'The FFR is the central mechanism of monetary policy. By adjusting the cost of overnight borrowing, the Fed influences the entire yield curve, credit conditions, and economic activity. Lower rates stimulate borrowing and spending; higher rates constrain them. The "neutral rate" (r*) is the rate that neither stimulates nor restricts — currently estimated at ~2.5-3.0%. Critical concept — passive tightening via real rates: a 5% nominal FFR is extremely accommodative when inflation is 6% (real rate = -1%), but extremely restrictive when inflation falls to 2% (real rate = +3%). This means that as inflation declines, the Fed is effectively "raising rates" in real terms even without any policy change. This is why the Fed may need to cut nominal rates just to maintain the same level of real restrictiveness — failure to do so results in an increasingly tight policy stance that risks overtightening the economy into recession.',
+      source: 'Federal Reserve / FOMC — 8 scheduled meetings per year; rate effective the day after announcement',
+      frequency: '8x per year',
+      aboveEst: 'A hawkish surprise (rate hike or hawkish hold) is sharply bearish for equities and bonds. Growth stocks and rate-sensitive sectors hit hardest. Dollar strengthens. Yield curve may flatten or invert.',
+      belowEst: 'A dovish surprise (cut or dovish hold) is bullish for equities and bonds. Growth and tech stocks rally. Rate-sensitive sectors (housing, REITs) benefit most. Dollar weakens. Yield curve steepens.',
+      tags: ['Monetary Policy', 'Fed', 'Interest Rate']
+    },
+    zh: {
+      name: '聯邦基金利率',
+      abbr: 'FFR',
+      category: '貨幣政策',
+      shortDesc: '聯儲局的主要政策利率 — 隔夜銀行間拆借利率目標。',
+      definition: '聯邦基金利率是存款機構之間隔夜借貸準備金餘額的利率。聯邦公開市場委員會（FOMC）設定目標區間，通過公開市場操作和準備金利息實施。利率決議每年四次附帶"點陣圖"預測和經濟預測摘要（SEP）。',
+      formula: '有效FFR = 隔夜聯邦基金交易的成交量加權中位數\n實際FFR = FFR - PCE通膨\n泰勒法則：FFR = r* + π + 0.5(π - π*) + 0.5(y - y*)\n其中r* = 中性利率，π = 通膨，π* = 目標，y-y* = 產出缺口',
+      theory: 'FFR是貨幣政策的核心機制。通過調整隔夜借貸成本，聯儲局影響整條收益率曲線、信貸條件和經濟活動。較低利率刺激借貸和消費；較高利率約束它們。"中性利率"（r*）是既不刺激也不限制的利率 — 目前估計約2.5-3.0%。關鍵概念 — 通過實質利率的被動緊縮：5%的名義FFR在通膨為6%時是極度寬鬆的（實質利率 = -1%），但在通膨降至2%時是極度緊縮的（實質利率 = +3%）。這意味著當通膨下降時，即使聯儲局不採取任何行動，實際上也在「被動加息」（因為實質利率升高了）。這就是為什麼聯儲局可能需要降低名義利率僅僅是為了維持相同水平的實質緊縮度 — 若不降息，政策立場會越來越緊，有過度緊縮導致經濟陷入衰退的風險。',
+      source: '聯邦儲備 / FOMC — 每年8次預定會議；利率在宣佈次日生效',
+      frequency: '每年8次',
+      aboveEst: '鷹派意外（加息或鷹派按兵不動）對股票和債券急劇利空。成長股和利率敏感板塊受衝擊最大。美元走強。收益率曲線可能平坦化或倒掛。',
+      belowEst: '鴿派意外（降息或鴿派按兵不動）對股票和債券利多。成長和科技股反彈。利率敏感板塊（住房、REITs）受益最多。美元走弱。收益率曲線陡峭化。',
+      tags: ['貨幣政策', '聯儲局', '利率']
+    }
+  },
+  {
+    id: 'trade_balance',
+    type: 'lagging',
+    en: {
+      name: 'Trade Balance (Net Exports)',
+      abbr: 'TRADE',
+      category: 'International',
+      shortDesc: 'Difference between exports and imports — reflects competitiveness and global demand.',
+      definition: 'The Trade Balance measures the difference between a nation\'s exports and imports of goods and services. A trade deficit (imports > exports) subtracts from GDP, while a surplus adds. The U.S. has run persistent trade deficits for decades. The goods trade balance and services trade balance are reported separately, with an advance goods estimate available earlier.',
+      formula: 'Trade Balance = Total Exports - Total Imports\nNet Exports (NX) = component of GDP\nGoods Balance + Services Balance = Total Trade Balance',
+      theory: 'Trade balances reflect relative economic strength, competitiveness, and exchange rate dynamics. The U.S. deficit is structural, partly reflecting the dollar\'s reserve currency status. Large swings in trade (especially inventory imports) can significantly affect quarterly GDP calculations.',
+      source: 'Bureau of Economic Analysis (BEA) & Census Bureau — released ~5 weeks after month end',
+      frequency: 'Monthly',
+      aboveEst: 'Narrower deficit or larger surplus adds to GDP. Bullish for domestic manufacturers. May signal improving global demand for U.S. goods. Dollar may strengthen.',
+      belowEst: 'Wider deficit subtracts from GDP. May signal strong domestic demand (pulling in imports) or weak export competitiveness. Can be GDP-negative but consumer-positive if driven by import demand.',
+      tags: ['Trade', 'GDP Component', 'International']
+    },
+    zh: {
+      name: '貿易差額（淨出口）',
+      abbr: 'TRADE',
+      category: '國際',
+      shortDesc: '出口與進口之差 — 反映競爭力和全球需求。',
+      definition: '貿易差額衡量一國商品和服務出口與進口之間的差異。貿易逆差（進口>出口）從GDP中扣除，而順差則增加。美國數十年來一直存在持續的貿易逆差。商品貿易差額和服務貿易差額分別報告，有更早可用的預先商品估算。',
+      formula: '貿易差額 = 總出口 - 總進口\n淨出口（NX）= GDP的組成部分\n商品差額 + 服務差額 = 總貿易差額',
+      theory: '貿易差額反映相對經濟實力、競爭力和匯率動態。美國的逆差是結構性的，部分反映美元的儲備貨幣地位。貿易的大幅波動（尤其是庫存進口）可以顯著影響季度GDP計算。',
+      source: '經濟分析局（BEA）和人口普查局 — 月末後約5週發佈',
+      frequency: '每月',
+      aboveEst: '逆差縮小或順差擴大增加GDP。對國內製造商利多。可能信號全球對美國商品需求改善。美元可能走強。',
+      belowEst: '逆差擴大從GDP中扣除。可能信號國內需求強勁（拉動進口）或出口競爭力疲軟。可能對GDP不利但若由進口需求驅動則對消費者正面。',
+      tags: ['貿易', 'GDP組成', '國際']
+    }
+  },
+  {
+    id: 'jolts',
+    type: 'lagging',
+    en: {
+      name: 'JOLTS (Job Openings & Labor Turnover)',
+      abbr: 'JOLTS',
+      category: 'Labor Market',
+      shortDesc: 'Measures job openings, hires, and separations — reveals labor market tightness and dynamics.',
+      definition: 'The Job Openings and Labor Turnover Survey provides monthly data on job openings, hires, separations (quits, layoffs, other). The job openings-to-unemployed ratio (Beveridge Curve) is the Fed\'s preferred measure of labor market tightness. The "quits rate" signals worker confidence — higher quits mean workers feel confident about finding better opportunities.',
+      formula: 'Job Openings Rate = (Job Openings / (Employment + Job Openings)) × 100\nQuits Rate = Quits / Total Employment × 100\nBeveridge Ratio = Job Openings / Unemployed Persons',
+      theory: 'JOLTS reveals labor market dynamics beyond headline employment. The openings-to-unemployed ratio shows how many jobs are available per job seeker — above 1.0 indicates a tight market. The quits rate reflects worker confidence: high quits = workers voluntarily leaving for better jobs = tight market. The Fed has explicitly cited JOLTS in policy decisions.',
+      source: 'Bureau of Labor Statistics (BLS) — released with a ~2 month lag (e.g., January data in March)',
+      frequency: 'Monthly (2-month lag)',
+      aboveEst: 'More openings = tighter labor market = hawkish. May reduce rate cut expectations. Positive for workers and wages, but signals potential cost pressure for companies.',
+      belowEst: 'Fewer openings = loosening market = dovish. Increases rate cut probability. The Fed has been hoping for a "soft landing" where openings decline without unemployment rising sharply.',
+      tags: ['Labor', 'Job Openings', 'Beveridge Curve']
+    },
+    zh: {
+      name: 'JOLTS（職位空缺與勞動力流動調查）',
+      abbr: 'JOLTS',
+      category: '勞動市場',
+      shortDesc: '衡量職位空缺、招聘和離職 — 揭示勞動市場緊俏程度和動態。',
+      definition: '職位空缺與勞動力流動調查提供每月的職位空缺、招聘、離職（辭職、裁員、其他）數據。職位空缺與失業人數比率（貝弗里奇曲線）是聯儲局首選的勞動市場緊俏度衡量。"辭職率"信號工人信心 — 更高的辭職率意味著工人有信心找到更好的機會。',
+      formula: '職位空缺率 = (職位空缺 / (就業 + 職位空缺)) × 100\n辭職率 = 辭職人數 / 總就業 × 100\n貝弗里奇比率 = 職位空缺 / 失業人數',
+      theory: 'JOLTS揭示了頭條就業之外的勞動市場動態。空缺與失業比率顯示每個求職者有多少工作機會 — 高於1.0表示緊俏市場。辭職率反映工人信心：高辭職 = 工人自願離開尋找更好的工作 = 緊俏市場。聯儲局已在政策決議中明確引用JOLTS。',
+      source: '勞工統計局（BLS）— 滯後約2個月發佈（如1月數據3月發佈）',
+      frequency: '每月（2個月滯後）',
+      aboveEst: '更多空缺 = 更緊俏的勞動市場 = 鷹派。可能降低降息預期。對工人和工資正面，但信號企業潛在成本壓力。',
+      belowEst: '更少空缺 = 市場鬆弛 = 鴿派。增加降息機率。聯儲局一直希望"軟著陸"，即空缺下降而失業率不會大幅上升。',
+      tags: ['勞動', '職位空缺', '貝弗里奇曲線']
+    }
+  },
+  {
+    id: 'housing_starts',
+    type: 'leading',
+    en: {
+      name: 'Housing Starts',
+      abbr: 'STARTS',
+      category: 'Housing',
+      shortDesc: 'Number of new residential construction projects begun — direct measure of housing sector momentum.',
+      definition: 'Housing Starts measures the number of privately-owned new housing units on which construction has begun. A "start" is defined as the beginning of excavation for the foundation. Reported alongside Building Permits and Housing Completions. Broken down by single-family, multi-family, and region.',
+      formula: 'Reported as: Seasonally Adjusted Annual Rate (SAAR)\nBreakdown: Single-family vs. Multi-family (5+ units)\nRegional: Northeast, Midwest, South, West',
+      theory: 'Housing starts translate permits into actual economic activity. Each start generates significant economic multiplier effects: construction jobs, materials demand, appliance purchases, and eventually property tax revenue. Housing is highly interest-rate-sensitive, making it one of the first sectors to respond to monetary policy changes.',
+      source: 'U.S. Census Bureau & HUD — released around the 17th of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Bullish for homebuilders, construction materials, and home furnishing stocks. Signals economic confidence and job creation. May also signal future supply that could moderate home price appreciation.',
+      belowEst: 'Bearish for housing chain stocks. May signal rate sensitivity or permit-to-start hesitation. In a tight supply market, fewer starts can be bullish for home prices but bearish for affordability.',
+      tags: ['Housing', 'Construction', 'Multiplier Effect']
+    },
+    zh: {
+      name: '新屋開工',
+      abbr: 'STARTS',
+      category: '住房',
+      shortDesc: '新住宅建設項目開工數量 — 住房部門動能的直接衡量。',
+      definition: '新屋開工衡量已開始施工的私有新住宅單位數量。"開工"定義為開始挖掘地基。與建築許可證和竣工一起報告。按獨棟、多戶和地區分類。',
+      formula: '報告方式：季節性調整年化率（SAAR）\n分類：獨棟 vs. 多戶（5+單位）\n地區：東北、中西部、南部、西部',
+      theory: '新屋開工將許可證轉化為實際經濟活動。每次開工產生顯著的經濟乘數效應：建築工作、材料需求、家電購買，最終帶來財產稅收入。住房對利率高度敏感，使其成為最先對貨幣政策變化做出反應的部門之一。',
+      source: '美國人口普查局與HUD — 每月約17日發佈',
+      frequency: '每月',
+      aboveEst: '對房屋建築商、建材和家居裝飾股利多。信號經濟信心和就業創造。也可能信號未來供應增加，可能緩和房價升值。',
+      belowEst: '對住房產業鏈股票利空。可能信號利率敏感性或許可到開工的猶豫。在供應緊張的市場，較少開工可能對房價利多但對可負擔性利空。',
+      tags: ['住房', '建設', '乘數效應']
+    }
+  },
+  {
+    id: 'durable_goods',
+    type: 'leading',
+    en: {
+      name: 'Durable Goods Orders',
+      abbr: 'DGO',
+      category: 'Business Investment',
+      shortDesc: 'New orders for long-lasting manufactured goods — a key proxy for business investment intentions.',
+      definition: 'Durable Goods Orders measures new orders placed with manufacturers for goods expected to last 3+ years (machinery, computers, aircraft, vehicles, appliances). Core Capital Goods Orders (non-defense excluding aircraft) is the most closely watched subset, serving as a direct proxy for business capital expenditure (CapEx) intentions. This feeds into the GDP investment component.',
+      formula: 'Headline = Total new orders for durable goods\nEx-Transportation = Headline - Aircraft & Defense (removes Boeing volatility)\nCore Capital Goods = Non-defense Capital Goods ex-Aircraft\n(Core Capital Goods Shipments feed directly into GDP equipment investment)',
+      theory: 'Businesses order capital equipment when they expect future demand growth. These orders represent long-term commitments, making them a strong leading indicator of business investment and economic expansion. The core capital goods measure strips out volatile defense and aircraft orders to reveal underlying business spending trends.',
+      source: 'U.S. Census Bureau — Advance report ~26 days after month end',
+      frequency: 'Monthly',
+      aboveEst: 'Bullish — signals business confidence and CapEx expansion. Positive for industrials, machinery, and semiconductor equipment stocks. Supports GDP investment component.',
+      belowEst: 'Bearish — suggests businesses are pulling back on investment. Negative for capital goods manufacturers. May signal economic uncertainty. Watch core capital goods for the true underlying trend.',
+      tags: ['Investment', 'CapEx', 'Manufacturing Orders']
+    },
+    zh: {
+      name: '耐用品訂單',
+      abbr: 'DGO',
+      category: '企業投資',
+      shortDesc: '耐用製成品新訂單 — 企業投資意向的關鍵代理指標。',
+      definition: '耐用品訂單衡量向製造商下達的預計使用3年以上的商品（機械、電腦、飛機、車輛、家電）新訂單。核心資本品訂單（非國防除飛機）是最受關注的子集，直接代理企業資本支出（CapEx）意向。這納入GDP的投資部分。',
+      formula: '總體 = 耐用品新訂單總額\n除運輸 = 總體 - 飛機與國防（去除波音波動）\n核心資本品 = 非國防資本品除飛機\n（核心資本品出貨直接納入GDP設備投資）',
+      theory: '企業在預期未來需求增長時訂購資本設備。這些訂單代表長期承諾，使其成為企業投資和經濟擴張的強勁領先指標。核心資本品指標剔除波動性的國防和飛機訂單，揭示潛在的企業支出趨勢。',
+      source: '美國人口普查局 — 初步報告在月末後約26天',
+      frequency: '每月',
+      aboveEst: '利多 — 信號企業信心和資本支出擴張。對工業、機械和半導體設備股正面。支持GDP投資部分。',
+      belowEst: '利空 — 暗示企業正在縮減投資。對資本品製造商不利。可能信號經濟不確定性。關注核心資本品以了解真正的潛在趨勢。',
+      tags: ['投資', '資本支出', '製造業訂單']
+    }
+  },
+  {
+    id: 'avg_weekly_hours',
+    type: 'leading',
+    en: {
+      name: 'Average Weekly Hours (Manufacturing)',
+      abbr: 'AWH',
+      category: 'Labor Market',
+      shortDesc: 'Average hours worked per week in manufacturing — employers adjust hours before adjusting headcount.',
+      definition: 'Average Weekly Hours measures the average number of hours worked per week by production and nonsupervisory employees in manufacturing. This is one of the Conference Board\'s LEI components because employers typically adjust work hours before changing employment levels — extending hours in upturns and cutting hours before layoffs.',
+      formula: 'AWH = Total Manufacturing Hours Worked / Total Manufacturing Employees\nPart of the Employment Situation Report (BLS)',
+      theory: 'Hours worked is the most flexible margin of labor adjustment. Employers increase overtime before hiring and reduce hours before laying off. This makes average hours a leading indicator of both hiring and firing decisions, and by extension, a leading indicator of manufacturing output and GDP.',
+      source: 'Bureau of Labor Statistics (BLS) — released with the Employment Situation Report',
+      frequency: 'Monthly',
+      aboveEst: 'Bullish — signals increasing demand for manufacturing labor. Hiring may follow. Positive for industrials and cyclical sectors.',
+      belowEst: 'Bearish — signals weakening manufacturing demand. Layoffs may follow. Early warning for industrial and materials sectors.',
+      tags: ['Labor', 'Manufacturing', 'Hours']
+    },
+    zh: {
+      name: '平均每週工時（製造業）',
+      abbr: 'AWH',
+      category: '勞動市場',
+      shortDesc: '製造業每週平均工時 — 雇主在調整人數前先調整工時。',
+      definition: '平均每週工時衡量製造業生產和非管理僱員每週的平均工作小時數。這是世界大型企業聯合會LEI的組成部分之一，因為雇主通常在改變就業水平之前先調整工時 — 在上升期延長工時，在裁員前削減工時。',
+      formula: 'AWH = 製造業總工時 / 製造業總僱員數\n勞工統計局就業形勢報告的一部分',
+      theory: '工時是勞動調整最靈活的邊際。雇主在招聘前先增加加班，在裁員前先減少工時。這使平均工時成為招聘和解僱決策的領先指標，進而也是製造業產出和GDP的領先指標。',
+      source: '勞工統計局（BLS）— 與就業形勢報告同時發佈',
+      frequency: '每月',
+      aboveEst: '利多 — 信號製造業勞動需求增加。招聘可能隨後。對工業和週期性板塊正面。',
+      belowEst: '利空 — 信號製造業需求疲軟。裁員可能隨後。工業和材料板塊的早期預警。',
+      tags: ['勞動', '製造業', '工時']
+    }
+  },
+  {
+    id: 'new_home_sales',
+    type: 'leading',
+    en: {
+      name: 'New & Existing Home Sales',
+      abbr: 'HOME SALES',
+      category: 'Housing',
+      shortDesc: 'Monthly count of home sale transactions — measures housing demand and affordability dynamics.',
+      definition: 'New Home Sales measures signed contracts for newly built homes (Census Bureau). Existing Home Sales measures completed transactions of previously-owned homes (National Association of Realtors). Together they capture the breadth of housing demand. Median prices, months of supply (inventory), and regional breakdowns provide additional context.',
+      formula: 'Reported as: Seasonally Adjusted Annual Rate (SAAR)\nMonths of Supply = Inventory / Monthly Sales Rate\n<6 months supply = seller\'s market, >6 months = buyer\'s market\nPending Home Sales leads Existing Home Sales by 1-2 months',
+      theory: 'Housing transactions reflect the intersection of mortgage rates, prices, income growth, and consumer confidence. Home sales have a massive multiplier effect through related spending (furniture, renovations, services). The housing market often leads the broader economy due to its interest rate sensitivity.',
+      source: 'Census Bureau (New) & NAR (Existing) — released monthly at different times',
+      frequency: 'Monthly',
+      aboveEst: 'Bullish for housing ecosystem stocks. Signals resilient demand despite rate environment. Watch median prices for affordability signals. Positive wealth effect for existing homeowners.',
+      belowEst: 'Bearish for housing ecosystem. May signal affordability crunch or rate impact. Homebuilders, mortgage lenders, and home improvement retailers all affected.',
+      tags: ['Housing', 'Demand', 'Affordability']
+    },
+    zh: {
+      name: '新屋與成屋銷售',
+      abbr: 'HOME SALES',
+      category: '住房',
+      shortDesc: '每月住宅銷售交易數量 — 衡量住房需求和可負擔性動態。',
+      definition: '新屋銷售衡量新建住宅的已簽訂合同（人口普查局）。成屋銷售衡量已完成的二手住宅交易（全國房地產經紀人協會）。兩者共同捕捉住房需求的廣度。中位價格、供應月數（庫存）和地區分類提供額外背景。',
+      formula: '報告方式：季節性調整年化率（SAAR）\n供應月數 = 庫存 / 月銷售率\n<6個月供應 = 賣方市場，>6個月 = 買方市場\n待定住宅銷售領先成屋銷售1-2個月',
+      theory: '住房交易反映抵押貸款利率、價格、收入增長和消費者信心的交匯。住宅銷售通過相關支出（家具、裝修、服務）具有巨大的乘數效應。住房市場因其利率敏感性通常領先於更廣泛的經濟。',
+      source: '人口普查局（新屋）和NAR（成屋）— 每月在不同時間發佈',
+      frequency: '每月',
+      aboveEst: '對住房生態系統股票利多。信號在利率環境下需求保持韌性。關注中位價格的可負擔性信號。對現有房主的正面財富效應。',
+      belowEst: '對住房生態系統利空。可能信號可負擔性危機或利率影響。房屋建築商、抵押貸款人和家居裝修零售商均受影響。',
+      tags: ['住房', '需求', '可負擔性']
+    }
+  },
+  {
+    id: 'consumer_credit',
+    type: 'lagging',
+    en: {
+      name: 'Consumer Credit',
+      abbr: 'CREDIT',
+      category: 'Financial Conditions',
+      shortDesc: 'Monthly change in outstanding consumer credit — reveals borrowing trends and financial stress.',
+      definition: 'Consumer Credit measures the total outstanding credit owed by consumers, excluding mortgage debt. Divided into revolving credit (primarily credit cards) and non-revolving credit (auto loans, student loans, personal loans). The monthly change reveals whether consumers are adding or reducing debt.',
+      formula: 'Consumer Credit Outstanding = Revolving + Non-Revolving\nMonthly Change = Current Month Outstanding - Prior Month Outstanding\nCredit Card Delinquency Rate = 90+ Day Delinquencies / Total Card Balances',
+      theory: 'Growing consumer credit can signal confidence (borrowing to spend) or desperation (borrowing to cover essentials). Context matters: credit growth with rising incomes is healthy; credit growth with stagnant incomes signals vulnerability. Rising delinquency rates alongside credit growth is a red flag.',
+      source: 'Federal Reserve — released approximately 5 weeks after month end',
+      frequency: 'Monthly',
+      aboveEst: 'Ambiguous: can signal consumer confidence (spending more) or financial stress (relying on credit). Must be interpreted alongside income data and delinquency rates.',
+      belowEst: 'May signal consumer caution or tightened lending standards. Reduced spending power going forward. Can be positive if it means consumers are de-leveraging voluntarily.',
+      tags: ['Credit', 'Consumer', 'Financial Stress']
+    },
+    zh: {
+      name: '消費者信貸',
+      abbr: 'CREDIT',
+      category: '金融條件',
+      shortDesc: '每月未償消費者信貸變化 — 揭示借貸趨勢和財務壓力。',
+      definition: '消費者信貸衡量消費者所欠的未償信貸總額，不包括抵押貸款債務。分為循環信貸（主要是信用卡）和非循環信貸（汽車貸款、學生貸款、個人貸款）。每月變化揭示消費者是在增加還是減少債務。',
+      formula: '消費者信貸未償額 = 循環 + 非循環\n每月變化 = 當月未償額 - 上月未償額\n信用卡拖欠率 = 90天以上拖欠 / 總卡餘額',
+      theory: '消費者信貸增長可以信號信心（借貸消費）或絕望（借貸維持基本需求）。背景很重要：信貸增長伴隨收入上升是健康的；信貸增長伴隨收入停滯信號脆弱性。拖欠率上升伴隨信貸增長是危險信號。',
+      source: '聯邦儲備 — 月末後約5週發佈',
+      frequency: '每月',
+      aboveEst: '模糊：可以信號消費者信心（消費更多）或財務壓力（依賴信貸）。必須結合收入數據和拖欠率解讀。',
+      belowEst: '可能信號消費者謹慎或收緊的貸款標準。未來消費能力下降。若意味著消費者主動去槓桿則可能為正面。',
+      tags: ['信貸', '消費者', '財務壓力']
+    }
+  },
+  // ===== NEW HIGH-VALUE INDICATORS =====
+  {
+    id: 'm2_money',
+    type: 'leading',
+    en: {
+      name: 'M2 Money Supply',
+      abbr: 'M2',
+      category: 'Monetary & Liquidity',
+      shortDesc: 'Broad money supply measure — the ultimate long-term driver of inflation and liquidity conditions.',
+      definition: 'M2 is the broadest commonly-tracked measure of the U.S. money supply. It includes M1 (physical currency, demand deposits, and other checkable deposits) plus savings deposits, money market mutual fund shares, and small time deposits (<$100K). M2 represents the total pool of money available for spending and short-term investment in the economy.',
+      formula: 'M2 = M1 + Savings Deposits + Money Market Funds + Small Time Deposits\nM1 = Currency in Circulation + Demand Deposits + Other Checkable Deposits\nM2 YoY Growth = ((Current M2 / M2 12 months ago) - 1) × 100',
+      theory: 'Milton Friedman: "Inflation is always and everywhere a monetary phenomenon." M2 expansion creates the liquidity foundation for asset price inflation and eventually consumer price inflation, typically with a 12-18 month lag. The unprecedented M2 surge of 2020-2021 (~27% YoY growth) directly fueled the 2022-2023 inflation spike. In 2022-2023, M2 YoY growth turned negative for the first time since the 1930s, providing a powerful leading signal that inflation would structurally decline. M2 also determines the long-term liquidity "floor" for financial markets.',
+      source: 'Federal Reserve — released weekly (H.6 report) and monthly',
+      frequency: 'Weekly/Monthly',
+      aboveEst: 'Accelerating M2 growth is bullish for equities and risk assets in the medium term (more liquidity entering the system), but is a leading indicator of future inflationary pressure. Gold and real assets tend to benefit. Signals that the Fed may need to tighten in the future.',
+      belowEst: 'Decelerating or negative M2 growth is a structural headwind for risk assets and a leading indicator of disinflation. However, may support the case for rate cuts, which is equity-positive. Historically rare for M2 to contract — if sustained, signals significant tightening of financial conditions.',
+      tags: ['Money Supply', 'Liquidity', 'Inflation Driver']
+    },
+    zh: {
+      name: 'M2 貨幣供給量',
+      abbr: 'M2',
+      category: '貨幣與流動性',
+      shortDesc: '廣義貨幣供給指標 — 通膨與流動性狀況的終極長期驅動力。',
+      definition: 'M2是美國貨幣供給最廣泛追蹤的指標。包括M1（實體貨幣、活期存款和其他可開支票存款）加上儲蓄存款、貨幣市場共同基金份額和小額定期存款（<10萬美元）。M2代表經濟中可用於消費和短期投資的資金總池。',
+      formula: 'M2 = M1 + 儲蓄存款 + 貨幣市場基金 + 小額定期存款\nM1 = 流通中貨幣 + 活期存款 + 其他可開支票存款\nM2年增率 = ((當前M2 / 12個月前M2) - 1) × 100',
+      theory: '弗里德曼：「通膨在任何時候任何地方都是貨幣現象。」M2擴張為資產價格通膨和最終消費者價格通膨創造了流動性基礎，通常有12-18個月的滯後。2020-2021年史無前例的M2激增（年增率約27%）直接推動了2022-2023年的通膨飆升。2022-2023年M2年增率自1930年代以來首次轉負，為通膨將結構性下降提供了強有力的領先信號。M2也決定了金融市場的長期流動性「底部」。',
+      source: '聯邦儲備 — 每週發佈（H.6報告）和每月發佈',
+      frequency: '每週/每月',
+      aboveEst: 'M2增速加快中期對股市和風險資產利多（更多流動性進入系統），但為未來通膨壓力的領先指標。黃金和實物資產傾向受益。信號聯儲局未來可能需要收緊。',
+      belowEst: 'M2增速放緩或負增長對風險資產構成結構性逆風，且為去通膨的領先指標。但可能支持降息論據，這對股市正面。M2收縮歷史上罕見 — 若持續，信號金融條件顯著收緊。',
+      tags: ['貨幣供給', '流動性', '通膨驅動']
+    }
+  },
+  {
+    id: 'nfib',
+    type: 'leading',
+    en: {
+      name: 'NFIB Small Business Optimism Index',
+      abbr: 'NFIB',
+      category: 'Business Activity',
+      shortDesc: 'Monthly survey of small businesses — an early signal for hiring, wages, and pricing intentions.',
+      definition: 'The National Federation of Independent Business (NFIB) Small Business Optimism Index surveys approximately 620 small business owners monthly on ten components: plans to increase employment, plans to make capital outlays, plans to increase inventories, expect economy to improve, expect real sales higher, current inventory satisfaction, current job openings, expected credit conditions, now a good time to expand, and earnings trend. Small businesses employ roughly 50% of the private-sector workforce.',
+      formula: 'NFIB Index = Seasonally adjusted composite of 10 components\nKey sub-indices: Hiring Plans, Compensation Plans, Price Plans\nHistorical average: ~98 (1986=100 base)',
+      theory: 'Small businesses are the first to feel changes in economic conditions because they lack the financial buffers of large corporations. The NFIB "Compensation Plans" and "Price Plans" sub-indices are among the most accurate leading indicators of wage inflation and CPI, respectively — typically leading official data by 3-6 months. "Hiring Plans" leads NFP. Because small businesses drive the majority of U.S. job creation, a deterioration here often presages broader labor market weakness months before it appears in headline data.',
+      source: 'National Federation of Independent Business (NFIB) — released second Tuesday of each month',
+      frequency: 'Monthly',
+      aboveEst: 'Bullish — signals small business confidence in expansion. Hiring and CapEx plans likely to increase. Watch compensation plans sub-index for wage pressure. Supports the cyclical recovery narrative.',
+      belowEst: 'Bearish for the labor market and broader economy. Small business retrenchment foreshadows NFP weakness, reduced CapEx, and potential price discounting. Falling price plans are dovish for Fed policy.',
+      tags: ['Small Business', 'Hiring Plans', 'Price Plans']
+    },
+    zh: {
+      name: 'NFIB 小型企業樂觀指數',
+      abbr: 'NFIB',
+      category: '商業活動',
+      shortDesc: '每月小型企業調查 — 招聘、工資和定價意向的早期信號。',
+      definition: '全國獨立企業聯盟（NFIB）小型企業樂觀指數每月調查約620名小型企業主的十個部分：增加就業計劃、資本支出計劃、增加庫存計劃、預期經濟改善、預期實際銷售更高、當前庫存滿意度、當前職位空缺、預期信貸條件、現在是擴張的好時機、以及盈利趨勢。小型企業僱用約50%的私營部門勞動力。',
+      formula: 'NFIB指數 = 10個成分的季節性調整綜合\n關鍵子指數：招聘計劃、薪酬計劃、定價計劃\n歷史平均：約98（1986=100基準）',
+      theory: '小型企業最先感受到經濟狀況的變化，因為它們缺乏大型企業的財務緩衝。NFIB的「薪酬計劃」和「定價計劃」子指數分別是工資通膨和CPI最準確的領先指標之一 — 通常領先官方數據3-6個月。「招聘計劃」領先NFP。由於小型企業驅動了美國大部分就業創造，這裡的惡化通常在頭條數據出現之前數月就預示更廣泛的勞動市場疲軟。',
+      source: '全國獨立企業聯盟（NFIB）— 每月第二個週二發佈',
+      frequency: '每月',
+      aboveEst: '利多 — 信號小型企業對擴張有信心。招聘和資本支出計劃可能增加。關注薪酬計劃子指數的工資壓力。支持週期性復甦敘事。',
+      belowEst: '對勞動市場和更廣泛經濟利空。小型企業收縮預示NFP疲軟、資本支出減少和潛在的降價。定價計劃下降對聯儲局政策鴿派。',
+      tags: ['小型企業', '招聘計劃', '定價計劃']
+    }
+  },
+  {
+    id: 'hy_spreads',
+    type: 'leading',
+    en: {
+      name: 'High Yield (Junk Bond) Credit Spreads',
+      abbr: 'HY Spread',
+      category: 'Financial Markets',
+      shortDesc: 'Risk premium on speculative-grade corporate debt — the bond market\'s real-time stress barometer.',
+      definition: 'High Yield Credit Spreads measure the difference in yield between speculative-grade (BB+ and below) corporate bonds and comparable-maturity U.S. Treasuries. The most widely tracked benchmark is the ICE BofA US High Yield Index Option-Adjusted Spread (OAS). Spreads represent the additional compensation investors demand for bearing default risk. Normal range: 300-400 bps; stress: 500-700 bps; crisis: 800+ bps.',
+      formula: 'HY Spread = Yield on HY Index - Yield on Comparable Treasury\nICE BofA HY OAS = Option-Adjusted Spread of the HY Index\nSpread Levels: <300 bps = complacent/tight; 300-500 bps = normal; 500-700 bps = stress; >800 bps = crisis',
+      theory: '"Equities can lie, but credit rarely does." Credit spreads directly price in default probability and recovery expectations. Because bondholders have limited upside but full downside exposure, they are structurally more cautious than equity investors. Widening HY spreads signal that the credit market — which funds corporate operations and LBOs — is repricing risk. This often leads equity declines by weeks or months. HY spread blowouts (>800 bps) historically coincide with systemic liquidity crises and mark major equity market bottoms.',
+      source: 'ICE/BofA indices via FRED (BAMLH0A0HYM2) — updated daily',
+      frequency: 'Daily',
+      aboveEst: 'Widening spreads (higher than expected) are bearish — signals rising default risk, tightening financial conditions, and potential systemic stress. If HY spreads blow out while equities are still stable, it is an early warning to de-risk. Highly leveraged sectors (real estate, energy, telecom) most vulnerable.',
+      belowEst: 'Tightening spreads (lower than expected) are bullish — signals abundant liquidity, low default expectations, and risk appetite. Supports credit-sensitive sectors. However, extremely tight spreads (<300 bps) may signal complacency and excessive risk-taking — a contrarian warning.',
+      tags: ['Credit', 'Default Risk', 'Systemic Stress']
+    },
+    zh: {
+      name: '高收益（垃圾債）信用利差',
+      abbr: 'HY Spread',
+      category: '金融市場',
+      shortDesc: '投機級企業債的風險溢價 — 債券市場的實時壓力晴雨表。',
+      definition: '高收益信用利差衡量投機級（BB+及以下）企業債與同期限美國國債之間的收益率差異。最廣泛追蹤的基準是ICE美銀美國高收益指數期權調整利差（OAS）。利差代表投資者為承擔違約風險而要求的額外補償。正常範圍：300-400基點；壓力：500-700基點；危機：800+基點。',
+      formula: 'HY利差 = 高收益指數收益率 - 可比國債收益率\nICE BofA HY OAS = 高收益指數的期權調整利差\n利差水平：<300基點 = 過度樂觀/偏緊；300-500基點 = 正常；500-700基點 = 壓力；>800基點 = 危機',
+      theory: '「股市會說謊，但債市通常不會。」信用利差直接定價違約機率和回收預期。由於債券持有者上行有限但面臨全部下行風險，他們在結構上比股票投資者更為謹慎。高收益利差擴大信號信用市場 — 為企業運營和槓桿收購提供資金 — 正在重新定價風險。這通常領先股票下跌數週或數月。高收益利差暴漲（>800基點）歷史上與系統性流動性危機同步出現，並標誌股市主要底部。',
+      source: 'ICE/BofA指數通過FRED（BAMLH0A0HYM2）— 每日更新',
+      frequency: '每日',
+      aboveEst: '利差擴大（高於預期）利空 — 信號違約風險上升、金融條件收緊和潛在的系統性壓力。若高收益利差暴漲而股市仍穩定，是減少風險的早期預警。高槓桿板塊（房地產、能源、電信）最脆弱。',
+      belowEst: '利差收窄（低於預期）利多 — 信號流動性充裕、違約預期低和風險偏好。支持對信用敏感的板塊。但極度收窄的利差（<300基點）可能信號過度自滿和過度冒險 — 逆向警告。',
+      tags: ['信用', '違約風險', '系統性壓力']
+    }
+  }
+];
+
+const uiText = {
+  en: {
+    title: '📊 Economic Indicators Dashboard',
+    subtitle: 'CLICK ANY INDICATOR FOR FULL DETAILS',
+    all: 'All Indicators',
+    leading: 'Leading',
+    lagging: 'Lagging',
+    coincident: 'Coincident',
+    search: 'Search indicators...',
+    definition: 'Definition',
+    formula: 'Formula / Calculation',
+    theory: 'Economic Theory',
+    source: 'Data Source',
+    frequency: 'Frequency',
+    marketImpact: 'Stock Market Consequence',
+    regimeNote: '⚠️ Macro Regime Matters: Data alone is neither bullish nor bearish — interpretation depends on the current economic cycle. In a hiking/inflation cycle, strong data = "good news is bad news" (hawkish). In a recession-fear cycle, weak data = "bad news is bad news" (genuine risk-off). Always identify the prevailing regime before reacting.',
+    aboveLabel: '▲ ABOVE ESTIMATE',
+    belowLabel: '▼ BELOW ESTIMATE',
+    relatedTags: 'Related Tags — click to filter',
+    footer: 'Data references: Bureau of Economic Analysis (BEA), Bureau of Labor Statistics (BLS), Federal Reserve, ISM, Conference Board, Census Bureau',
+    clickHint: 'Click for details →',
+    sectionLeading: '🟢 Leading Indicators — Predict Future Activity',
+    sectionCoincident: '🔵 Coincident Indicators — Reflect Current Conditions',
+    sectionLagging: '🔴 Lagging Indicators — Confirm Past Trends'
+  },
+  zh: {
+    title: '📊 經濟指標儀表板',
+    subtitle: '點擊任意指標查看完整詳情',
+    all: '所有指標',
+    leading: '領先指標',
+    lagging: '滯後指標',
+    coincident: '同步指標',
+    search: '搜尋指標...',
+    definition: '定義',
+    formula: '公式 / 計算方法',
+    theory: '經濟理論',
+    source: '數據來源',
+    frequency: '發佈頻率',
+    marketImpact: '股市影響',
+    regimeNote: '⚠️ 宏觀體制至關重要：數據本身無絕對利多或利空 — 解讀取決於當前經濟週期。在加息/通膨週期中，強勁數據 =「好消息就是壞消息」（鷹派）。在衰退擔憂週期中，疲軟數據 =「壞消息就是壞消息」（真正的避險）。反應前務必先識別當前的宏觀體制。',
+    aboveLabel: '▲ 高於預期',
+    belowLabel: '▼ 低於預期',
+    relatedTags: '相關標籤 — 點擊篩選',
+    footer: '數據參考：經濟分析局（BEA）、勞工統計局（BLS）、聯邦儲備、ISM、世界大型企業聯合會、人口普查局',
+    clickHint: '點擊查看詳情 →',
+    sectionLeading: '🟢 領先指標 — 預測未來經濟活動',
+    sectionCoincident: '🔵 同步指標 — 反映當前經濟狀況',
+    sectionLagging: '🔴 滯後指標 — 確認過去趨勢'
+  }
+};
+
+function setEconLang(lang, btn) {
+  currentLang = lang;
+  document.querySelectorAll('.ei-lang-btn').forEach(b => b.classList.remove('ei-active'));
+  btn.classList.add('ei-active');
+  updateEconUI();
+}
+
+function setEconFilter(type) {
+  currentFilter = type;
+  updateEconUI();
+}
+
+function formatFreq(freq) {
+  if (!freq) return '';
+  // Insert <br> before parenthetical so it wraps cleanly
+  return freq.replace(/\s*(\()/g, '<br>$1');
+}
+
+function updateEconUI() {
+  const t = uiText[currentLang];
+  
+  // Header
+  document.getElementById('headerTitle').textContent = t.title;
+  document.getElementById('headerSubtitle').textContent = t.subtitle;
+  
+    // Legend
+  document.getElementById('legLeading').textContent = t.leading;
+  document.getElementById('legCoincident').textContent = t.coincident;
+  document.getElementById('legLagging').textContent = t.lagging;
+  
+  // Footer
+  document.getElementById('footer').textContent = t.footer;
+  
+  // Filter bar
+  const filterBar = document.getElementById('filterBar');
+  filterBar.innerHTML = `
+    <button class="ei-filter-btn ${currentFilter === 'all' ? 'ei-active-all' : ''}" onclick="setEconFilter('all')">${t.all} (${indicators.length})</button>
+    <button class="ei-filter-btn ${currentFilter === 'leading' ? 'ei-active-leading' : ''}" onclick="setEconFilter('leading')">${t.leading} (${indicators.filter(i=>i.type==='leading').length})</button>
+    <button class="ei-filter-btn ${currentFilter === 'coincident' ? 'ei-active-coincident' : ''}" onclick="setEconFilter('coincident')">${t.coincident} (${indicators.filter(i=>i.type==='coincident').length})</button>
+    <button class="ei-filter-btn ${currentFilter === 'lagging' ? 'ei-active-lagging' : ''}" onclick="setEconFilter('lagging')">${t.lagging} (${indicators.filter(i=>i.type==='lagging').length})</button>
+    <div class="ei-search-wrap">
+      <input class="ei-search-box ${searchTerm ? 'ei-has-tag' : ''}" type="text" placeholder="${t.search}" value="${searchTerm}" oninput="searchTerm=this.value;drawEconCards();" />
+      <button class="ei-search-clear ${searchTerm ? 'ei-visible' : ''}" onclick="searchTerm='';updateEconUI();" title="Clear">✕</button>
+    </div>
+  `;
+  
+  drawEconCards();
+}
+
+function drawEconCards() {
+  const t = uiText[currentLang];
+  const main = document.getElementById('mainContent');
+  
+  let filtered = indicators;
+  if (currentFilter !== 'all') filtered = filtered.filter(i => i.type === currentFilter);
+  if (searchTerm) {
+    const s = searchTerm.toLowerCase();
+    filtered = filtered.filter(i => {
+      const d = i[currentLang];
+      return d.name.toLowerCase().includes(s) || d.abbr.toLowerCase().includes(s) || 
+             d.category.toLowerCase().includes(s) || d.shortDesc.toLowerCase().includes(s) ||
+             d.tags.some(tag => tag.toLowerCase().includes(s));
+    });
+  }
+  
+  const groups = [
+    { type: 'leading', title: t.sectionLeading },
+    { type: 'coincident', title: t.sectionCoincident },
+    { type: 'lagging', title: t.sectionLagging }
+  ];
+  
+  let html = '';
+  groups.forEach(g => {
+    const items = filtered.filter(i => i.type === g.type);
+    if (items.length === 0) return;
+    
+    html += `<div class="ei-section-title"><span>${g.title}</span><span class="ei-line"></span></div>`;
+    html += '<div class="ei-grid">';
+    items.forEach(item => {
+      const d = item[currentLang];
+      const typeLabel = currentLang === 'en' ? 
+        (item.type === 'leading' ? 'LEADING' : item.type === 'lagging' ? 'LAGGING' : 'COINCIDENT') :
+        (item.type === 'leading' ? '領先' : item.type === 'lagging' ? '滯後' : '同步');
+      
+      const catIcons = {
+        'Business Activity': '🏭', '商業活動': '🏭',
+        'Consumer Sentiment': '🧠', '消費者情緒': '🧠',
+        'Housing': '🏠', '住房': '🏠',
+        'Financial Markets': '📈', '金融市場': '📈',
+        'Labor Market': '👷', '勞動市場': '👷',
+        'Composite': '🧩', '綜合指標': '🧩',
+        'Output & Growth': '📊', '產出與增長': '📊',
+        'Inflation': '🔥', '通膨': '🔥',
+        'Consumer Spending': '🛒', '消費者支出': '🛒',
+        'Monetary Policy': '🏛️', '貨幣政策': '🏛️',
+        'International': '🌐', '國際': '🌐',
+        'Financial Conditions': '💳', '金融條件': '💳',
+        'Business Investment': '⚙️', '企業投資': '⚙️',
+        'Monetary & Liquidity': '💰', '貨幣與流動性': '💰'
+      };
+      const icon = catIcons[d.category] || '📋';
+      
+
+
+      html += `
+        <div class="ei-card ei-${item.type}" onclick="openEconModal('${item.id}')">
+          <div class="ei-card-header">
+            <div class="ei-card-name">${icon} ${d.name}</div>
+            <span class="ei-card-abbr">${d.abbr}</span>
+          </div>
+          <div class="ei-card-type">${typeLabel} · ${d.category}</div>
+          <div class="ei-card-desc">${d.shortDesc}</div>
+          <div class="ei-card-footer">
+            <span class="ei-card-freq">${formatFreq(d.frequency)}</span>
+            <span class="ei-card-click-hint">${t.clickHint}</span>
+          </div>
+        </div>
+      `;
+    });
+    html += '</div>';
+  });
+  
+  main.innerHTML = html;
+}
+
+function openEconModal(id) {
+  const item = indicators.find(i => i.id === id);
+  if (!item) return;
+  
+  const d = item[currentLang];
+  const t = uiText[currentLang];
+  const modal = document.getElementById('modalContent');
+  modal.innerHTML = `
+    <div class="ei-modal-header" style="position:relative;">
+      <div class="ei-modal-title-group">
+        <div class="ei-modal-name">${d.name}</div>
+        <div class="ei-modal-name-sub">${d.abbr} · ${d.category} <span class="ei-modal-badge ei-${item.type}">${item.type === 'leading' ? (currentLang==='en'?'Leading':'領先') : item.type === 'lagging' ? (currentLang==='en'?'Lagging':'滯後') : (currentLang==='en'?'Coincident':'同步')}</span></div>
+      </div>
+      <button class="ei-modal-close" onclick="closeEconModal()" title="Close">✕</button>
+    </div>
+    <div class="ei-modal-body">
+      <div class="ei-modal-section">
+        <div class="ei-modal-section-title"><span class="ei-icon">📖</span> ${t.definition}</div>
+        <div class="ei-modal-text">${d.definition}</div>
+      </div>
+      
+      <div class="ei-modal-section">
+        <div class="ei-modal-section-title"><span class="ei-icon">🔢</span> ${t.formula}</div>
+        <div class="ei-modal-formula">${d.formula.replace(/\n/g, '<br>')}</div>
+      </div>
+      
+      <div class="ei-modal-section">
+        <div class="ei-modal-section-title"><span class="ei-icon">🎓</span> ${t.theory}</div>
+        <div class="ei-modal-text">${d.theory}</div>
+      </div>
+      
+      <div class="ei-modal-section">
+        <div class="ei-modal-section-title"><span class="ei-icon">📡</span> ${t.source}</div>
+        <div class="ei-modal-source">${d.source}</div>
+        <div style="margin-top:6px;font-size:13px;color:var(--text-secondary);">${t.frequency}: ${d.frequency}</div>
+      </div>
+      
+      <div class="ei-modal-section">
+        <div class="ei-modal-section-title"><span class="ei-icon">📊</span> ${t.marketImpact}</div>
+        <div class="ei-regime-note">${t.regimeNote}</div>
+        <div class="ei-impact-grid">
+          <div class="ei-impact-box ei-bullish">
+            <div class="ei-impact-label">${t.aboveLabel}</div>
+            <div class="ei-impact-text">${d.aboveEst}</div>
+          </div>
+          <div class="ei-impact-box ei-bearish">
+            <div class="ei-impact-label">${t.belowLabel}</div>
+            <div class="ei-impact-text">${d.belowEst}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="ei-modal-section">
+        <div class="ei-modal-section-title"><span class="ei-icon">🏷️</span> ${t.relatedTags}</div>
+        <div class="ei-modal-tags">${d.tags.map(tag => `<span class="ei-modal-tag" onclick="filterEconByTag('${tag}')" title="${currentLang === 'en' ? 'Click to filter' : '點擊篩選'}">${tag}</span>`).join('')}</div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('modalOverlay').classList.add('ei-active');
+}
+
+function closeEconModal() {
+  document.getElementById('modalOverlay').classList.remove('ei-active');
+}
+
+function filterEconByTag(tag) {
+  closeEconModal();
+  // Set search to tag, reset filter to all
+  searchTerm = tag;
+  currentFilter = 'all';
+  updateEconUI();
+  // Scroll to top smoothly
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeEconModal();
+  }
+});
+
+// Initial render
+updateEconUI();
+
+</script>
+</body>
+</html>
